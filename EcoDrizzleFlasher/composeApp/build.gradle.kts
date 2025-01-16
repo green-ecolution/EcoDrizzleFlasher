@@ -29,7 +29,6 @@ kotlin {
     }
 }
 
-
 compose.desktop {
     application {
         mainClass = "org.ecodrizzle.de.MainKt"
