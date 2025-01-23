@@ -11,6 +11,8 @@ kotlin {
     
     sourceSets {
         val desktopMain by getting
+        val ktorVersion: String by project
+        val logbackVersion: String by project
         
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -21,6 +23,9 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation("io.ktor:ktor-client-core:$ktorVersion")
+            implementation("io.ktor:ktor-client-cio:$ktorVersion")
+            implementation("ch.qos.logback:logback-classic:$logbackVersion")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
