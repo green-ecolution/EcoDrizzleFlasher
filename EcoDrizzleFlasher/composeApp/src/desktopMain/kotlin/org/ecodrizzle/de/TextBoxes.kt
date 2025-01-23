@@ -21,10 +21,11 @@ class EuiInputTextBoxes {
             var endDeviceId by remember { mutableStateOf("") }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
+                    maxLines = 1,
                     value = endDeviceId,
                     onValueChange = {
                         if(it.length <= 16) {
-                            endDeviceId = it
+                            endDeviceId = it.replace(" ", "-")
                         }
                     },
                     label = { Text("End-Device-ID") })
@@ -37,49 +38,57 @@ class EuiInputTextBoxes {
             var joinEUI by remember { mutableStateOf("") }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
+                    maxLines = 1,
                     value = joinEUI,
                     onValueChange = {
                         if(it.length <= 16) {
-                            joinEUI = it
+                            joinEUI = it.replace(" ", "")
                         }
                     },
                     label = { Text("JoinEUI") })
                 Spacer(Modifier.width(12.dp))
                 Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)){
-                    Text(text = "JoinEUI: $joinEUI", style = TextStyle(fontSize = 12.sp))
+                    val formatedJoinEUI = formatInputToMSB(joinEUI)
+                    Text(text = "JoinEUI: $formatedJoinEUI", style = TextStyle(fontSize = 12.sp))
                 }
             }
 
-            var devEui by remember { mutableStateOf("") }
+            var devEui by remember { mutableStateOf("") } // Nur der Rohtext ohne Leerzeichen
+
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
+                    maxLines = 1,
                     value = devEui,
                     onValueChange = {
-                        if(it.length <= 16) {
-                            devEui = it
+                        if (it.length <= 16) {
+                            devEui = it.replace(" ", "") // Leerzeichen aus der Eingabe entfernen
                         }
                     },
-                    label = { Text("DevEUI") })
+                    label = { Text("DevEUI") }
+                )
                 Spacer(Modifier.width(12.dp))
-                Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)){
-                    Text(text = "DevEUI: $devEui", style = TextStyle(fontSize = 12.sp))
+                Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)) {
+                    val formattedDevEui = formatInputToMSB(devEui)
+                    Text(text = "DevEUI: $formattedDevEui", style = TextStyle(fontSize = 12.sp))
                 }
             }
 
             var appKey by remember { mutableStateOf("") }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
+                    maxLines = 1,
                     value = appKey,
                     onValueChange = {
                         if(it.length <= 32) {
-                            appKey = it
+                            appKey = it.replace(" ", "")
                         }
                     },
                     label = { Text("AppKey") },
                     modifier = Modifier.width(310.dp))
                 Spacer(Modifier.width(12.dp))
                 Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)){
-                    Text(text = "AppKey: $appKey", style = TextStyle(fontSize = 12.sp))
+                    val formattedAppKey = formatInputToMSB(appKey)
+                    Text(text = "AppKey: $formattedAppKey", style = TextStyle(fontSize = 12.sp))
                 }
             }
 
@@ -95,6 +104,10 @@ class EuiInputTextBoxes {
                 }
             )
         }
+    }
+
+    private fun formatInputToMSB(input: String): String {
+        return input.chunked(2).joinToString(" 0x", prefix = "0x")
     }
 
     @Composable
