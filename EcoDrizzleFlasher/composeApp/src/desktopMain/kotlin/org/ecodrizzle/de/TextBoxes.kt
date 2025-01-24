@@ -9,6 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -21,7 +23,7 @@ class EuiInputTextBoxes {
             var endDeviceId by remember { mutableStateOf("") }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
-                    maxLines = 1,
+                    singleLine = true,
                     value = endDeviceId,
                     onValueChange = {
                         if(it.length <= 16) {
@@ -36,58 +38,60 @@ class EuiInputTextBoxes {
             }
 
             var joinEUI by remember { mutableStateOf("") }
+            var formatedJoinEUI = ""
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
-                    maxLines = 1,
+                    singleLine = true,
                     value = joinEUI,
                     onValueChange = {
-                        if(it.length <= 16) {
+                        if(it.length <= 16 && it.all{char -> char.isDigit()}) {
                             joinEUI = it.replace(" ", "")
                         }
                     },
                     label = { Text("JoinEUI") })
                 Spacer(Modifier.width(12.dp))
                 Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)){
-                    val formatedJoinEUI = formatInputToMSB(joinEUI)
+                    formatedJoinEUI = formatInputToMSB(joinEUI)
                     Text(text = "JoinEUI: $formatedJoinEUI", style = TextStyle(fontSize = 12.sp))
                 }
             }
 
             var devEui by remember { mutableStateOf("") } // Nur der Rohtext ohne Leerzeichen
-
+            var formatedDevEUI = ""
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
-                    maxLines = 1,
+                    singleLine = true,
                     value = devEui,
                     onValueChange = {
                         if (it.length <= 16) {
-                            devEui = it.replace(" ", "") // Leerzeichen aus der Eingabe entfernen
+                            devEui = it.replace(" ", "").toUpperCase(Locale.current)
                         }
                     },
                     label = { Text("DevEUI") }
                 )
                 Spacer(Modifier.width(12.dp))
                 Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)) {
-                    val formattedDevEui = formatInputToMSB(devEui)
-                    Text(text = "DevEUI: $formattedDevEui", style = TextStyle(fontSize = 12.sp))
+                    formatedDevEUI = formatInputToMSB(devEui)
+                    Text(text = "DevEUI: $formatedDevEUI", style = TextStyle(fontSize = 12.sp))
                 }
             }
 
             var appKey by remember { mutableStateOf("") }
+            var formattedAppKey = ""
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
-                    maxLines = 1,
+                    singleLine = true,
                     value = appKey,
                     onValueChange = {
                         if(it.length <= 32) {
-                            appKey = it.replace(" ", "")
+                            appKey = it.replace(" ", "").toUpperCase(Locale.current)
                         }
                     },
                     label = { Text("AppKey") },
                     modifier = Modifier.width(310.dp))
                 Spacer(Modifier.width(12.dp))
                 Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)){
-                    val formattedAppKey = formatInputToMSB(appKey)
+                    formattedAppKey = formatInputToMSB(appKey)
                     Text(text = "AppKey: $formattedAppKey", style = TextStyle(fontSize = 12.sp))
                 }
             }
@@ -103,6 +107,12 @@ class EuiInputTextBoxes {
                     }
                 }
             )
+
+            var resultText by remember { mutableStateOf("Hier sollten die formatierten Inputs auftauchen!") }
+            Button(onClick = {resultText = "JoinEUI: $formatedJoinEUI \nDevEUI: $formatedDevEUI \nAppKEY: $formattedAppKey" }) {
+                Text(text = "Eingaben speichern")
+            }
+            Text(resultText, style = TextStyle(fontSize = 12.sp))
         }
     }
 
