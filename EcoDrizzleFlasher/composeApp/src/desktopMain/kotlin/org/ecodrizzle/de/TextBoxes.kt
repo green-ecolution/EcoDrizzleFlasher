@@ -16,6 +16,11 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
 class EuiInputTextBoxes {
+    private var endDeviceIdLength = 16
+    private var joinEuiLength = 16
+    private var devEuiLength = 16
+    private var appKeyLength = 32
+
     @Preview
     @Composable
     fun EuiFields() {
@@ -26,7 +31,7 @@ class EuiInputTextBoxes {
                     singleLine = true,
                     value = endDeviceId,
                     onValueChange = {
-                        if(it.length <= 16) {
+                        if(it.length <= endDeviceIdLength) {
                             endDeviceId = it.replace(" ", "-")
                         }
                     },
@@ -44,7 +49,7 @@ class EuiInputTextBoxes {
                     singleLine = true,
                     value = joinEUI,
                     onValueChange = {
-                        if(it.length <= 16 && it.all{char -> char.isDigit()}) {
+                        if(it.length <= joinEuiLength && it.all{char -> char.isDigit()}) {
                             joinEUI = it.replace(" ", "")
                         }
                     },
@@ -63,7 +68,7 @@ class EuiInputTextBoxes {
                     singleLine = true,
                     value = devEui,
                     onValueChange = {
-                        if (it.length <= 16) {
+                        if (it.length <= devEuiLength) {
                             devEui = it.replace(" ", "").toUpperCase(Locale.current)
                         }
                     },
@@ -83,7 +88,7 @@ class EuiInputTextBoxes {
                     singleLine = true,
                     value = appKey,
                     onValueChange = {
-                        if(it.length <= 32) {
+                        if(it.length <= appKeyLength) {
                             appKey = it.replace(" ", "").toUpperCase(Locale.current)
                         }
                     },
@@ -113,11 +118,28 @@ class EuiInputTextBoxes {
                 Text(text = "Eingaben speichern")
             }
             Text(resultText, style = TextStyle(fontSize = 12.sp))
+
+            Button(onClick = {appKey = generateRandomAppKey() }) {
+                Text(text = "AppKey generierung")
+            }
         }
     }
 
     private fun formatInputToMSB(input: String): String {
         return input.chunked(2).joinToString(" 0x", prefix = "0x")
+    }
+
+    private fun generateRandomAppKey(): String {
+        val charPool = (('A'..'Z') + ('0' .. '9'))
+        val appKeyList = ArrayList<Char>()
+
+        for(i in 1..appKeyLength) {
+            val single = charPool.random()
+            appKeyList.add(single)
+        }
+
+        val appKeyString = appKeyList.joinToString("")
+        return appKeyString
     }
 
     @Composable
