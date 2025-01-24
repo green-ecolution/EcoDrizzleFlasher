@@ -2,9 +2,9 @@ package org.ecodrizzle.de
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 class EuiInputTextBoxes {
     private var endDeviceIdLength = 16
     private var joinEuiLength = 16
-    private var devEuiLength = 16
-    private var appKeyLength = 32
+    var devEuiLength = 16
+    var appKeyLength = 32
 
     @Preview
     @Composable
@@ -75,7 +75,14 @@ class EuiInputTextBoxes {
                     label = { Text("DevEUI") }
                 )
                 Spacer(Modifier.width(12.dp))
-                Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)) {
+                Button(onClick = {devEui = generateRandomCredentials("devEui") }, contentPadding = PaddingValues(10.dp)) {
+                    Icon(Icons.Default.Refresh,
+                        contentDescription = "DevEUI-Generator-Button",
+                        modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "DevEUI", style = TextStyle(fontSize = 15.sp))
+                }
+                Box(modifier = Modifier.padding(5.dp).align(Alignment.CenterVertically)) {
                     formatedDevEUI = formatInputToMSB(devEui)
                     Text(text = "DevEUI: $formatedDevEUI", style = TextStyle(fontSize = 12.sp))
                 }
@@ -95,6 +102,14 @@ class EuiInputTextBoxes {
                     label = { Text("AppKey") },
                     modifier = Modifier.width(310.dp))
                 Spacer(Modifier.width(12.dp))
+                Button(onClick = {appKey = generateRandomCredentials("appKey") }, contentPadding = PaddingValues(10.dp)) {
+                    Icon(Icons.Default.Refresh,
+                        contentDescription = "AppKey-Generator-Button",
+                        modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "AppKey", style = TextStyle(fontSize = 15.sp))
+                }
+                Spacer(Modifier.width(8.dp))
                 Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)){
                     formattedAppKey = formatInputToMSB(appKey)
                     Text(text = "AppKey: $formattedAppKey", style = TextStyle(fontSize = 12.sp))
@@ -118,28 +133,11 @@ class EuiInputTextBoxes {
                 Text(text = "Eingaben speichern")
             }
             Text(resultText, style = TextStyle(fontSize = 12.sp))
-
-            Button(onClick = {appKey = generateRandomAppKey() }) {
-                Text(text = "AppKey generierung")
-            }
         }
     }
 
     private fun formatInputToMSB(input: String): String {
         return input.chunked(2).joinToString(" 0x", prefix = "0x")
-    }
-
-    private fun generateRandomAppKey(): String {
-        val charPool = (('A'..'Z') + ('0' .. '9'))
-        val appKeyList = ArrayList<Char>()
-
-        for(i in 1..appKeyLength) {
-            val single = charPool.random()
-            appKeyList.add(single)
-        }
-
-        val appKeyString = appKeyList.joinToString("")
-        return appKeyString
     }
 
     @Composable
