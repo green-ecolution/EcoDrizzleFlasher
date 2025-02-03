@@ -3,117 +3,44 @@ package org.ecodrizzle.de
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
 class EuiInputTextBoxes {
-    private var endDeviceIdLength = 16
-    private var joinEuiLength = 16
-    var devEuiLength = 16
-    var appKeyLength = 32
+    private val endDeviceIdField = EuiInputField()
+    private val joinEuiField = EuiInputField()
+    private val devEuiField = EuiInputField()
+    private val appKeyField = EuiInputField()
 
     @Preview
     @Composable
     fun EuiFields() {
+        var endDeviceId by remember { mutableStateOf("") }
+        var joinEui by remember { mutableStateOf("") }
+        var devEui by remember { mutableStateOf("") }
+        var appKey by remember { mutableStateOf("") }
+
         Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.Start) {
-            var endDeviceId by remember { mutableStateOf("") }
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    singleLine = true,
-                    value = endDeviceId,
-                    onValueChange = {
-                        if(it.length <= endDeviceIdLength) {
-                            endDeviceId = it.replace(" ", "-")
-                        }
-                    },
-                    label = { Text("End-Device-ID") })
-                Spacer(Modifier.width(12.dp))
-                Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)){
-                    Text(text = "Device ID: $endDeviceId", style = TextStyle(fontSize = 12.sp))
-                }
+            endDeviceIdField.inputField("DeviceID",16, add0x = false,
+                onlyDigits = false, toUpperCase = false, randomGeneration = false) { newValue ->
+                endDeviceId = newValue // Aktualisiert den Wert in der übergeordneten Composable
             }
-
-            var joinEUI by remember { mutableStateOf("") }
-            var formatedJoinEUI = ""
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    singleLine = true,
-                    value = joinEUI,
-                    onValueChange = {
-                        if(it.length <= joinEuiLength && it.all{char -> char.isDigit()}) {
-                            joinEUI = it.replace(" ", "")
-                        }
-                    },
-                    label = { Text("JoinEUI") })
-                Spacer(Modifier.width(12.dp))
-                Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)){
-                    formatedJoinEUI = formatInputToMSB(joinEUI)
-                    Text(text = "JoinEUI: $formatedJoinEUI", style = TextStyle(fontSize = 12.sp))
-                }
+            joinEuiField.inputField("JoinEUI",16, add0x = true,
+                onlyDigits = true, toUpperCase = false, randomGeneration = false) { newValue ->
+                joinEui = newValue // Aktualisiert den Wert in der übergeordneten Composable
             }
-
-            var devEui by remember { mutableStateOf("") } // Nur der Rohtext ohne Leerzeichen
-            var formatedDevEUI = ""
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    singleLine = true,
-                    value = devEui,
-                    onValueChange = {
-                        if (it.length <= devEuiLength) {
-                            devEui = it.replace(" ", "").toUpperCase(Locale.current)
-                        }
-                    },
-                    label = { Text("DevEUI") }
-                )
-                Spacer(Modifier.width(12.dp))
-                Button(onClick = {devEui = generateRandomCredentials("devEui") }, contentPadding = PaddingValues(10.dp)) {
-                    Icon(Icons.Default.Refresh,
-                        contentDescription = "DevEUI-Generator-Button",
-                        modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = "DevEUI", style = TextStyle(fontSize = 15.sp))
-                }
-                Box(modifier = Modifier.padding(5.dp).align(Alignment.CenterVertically)) {
-                    formatedDevEUI = formatInputToMSB(devEui)
-                    Text(text = "DevEUI: $formatedDevEUI", style = TextStyle(fontSize = 12.sp))
-                }
+            devEuiField.inputField("DevEUI",16, add0x = true,
+                onlyDigits = false, toUpperCase = true, randomGeneration = true) { newValue ->
+                devEui = newValue // Aktualisiert den Wert in der übergeordneten Composable
             }
-
-            var appKey by remember { mutableStateOf("") }
-            var formattedAppKey = ""
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    singleLine = true,
-                    value = appKey,
-                    onValueChange = {
-                        if(it.length <= appKeyLength) {
-                            appKey = it.replace(" ", "").toUpperCase(Locale.current)
-                        }
-                    },
-                    label = { Text("AppKey") },
-                    modifier = Modifier.width(310.dp))
-                Spacer(Modifier.width(12.dp))
-                Button(onClick = {appKey = generateRandomCredentials("appKey") }, contentPadding = PaddingValues(10.dp)) {
-                    Icon(Icons.Default.Refresh,
-                        contentDescription = "AppKey-Generator-Button",
-                        modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = "AppKey", style = TextStyle(fontSize = 15.sp))
-                }
-                Spacer(Modifier.width(8.dp))
-                Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)){
-                    formattedAppKey = formatInputToMSB(appKey)
-                    Text(text = "AppKey: $formattedAppKey", style = TextStyle(fontSize = 12.sp))
-                }
+            appKeyField.inputField("AppKey",32, add0x = true,
+                onlyDigits = false, toUpperCase = true, randomGeneration = true) { newValue ->
+                appKey = newValue // Aktualisiert den Wert in der übergeordneten Composable
             }
 
             var responseText by remember { mutableStateOf("Noch keine Daten geladen...") }
@@ -129,15 +56,11 @@ class EuiInputTextBoxes {
             )
 
             var resultText by remember { mutableStateOf("Hier sollten die formatierten Inputs auftauchen!") }
-            Button(onClick = {resultText = "JoinEUI: $formatedJoinEUI \nDevEUI: $formatedDevEUI \nAppKEY: $formattedAppKey" }) {
+            Button(onClick = {resultText = "EndDeviceID : $endDeviceId \nJoinEUI: $joinEui \nDevEUI: $devEui \nAppKEY: $appKey" }) {
                 Text(text = "Eingaben speichern")
             }
             Text(resultText, style = TextStyle(fontSize = 12.sp))
         }
-    }
-
-    private fun formatInputToMSB(input: String): String {
-        return input.chunked(2).joinToString(" 0x", prefix = "0x")
     }
 
     @Composable
