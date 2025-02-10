@@ -31,9 +31,9 @@ suspend fun executeRequestsToTTN(): List<String> {
     return try {
         val results = listOf(
             request(createDeviceURL, "POST"),
-            request(applicationServerPutURL, "PUT"),
-            request(joinServerPutURL, "PUT"),
-            request(networkServerPutURL, "PUT"),
+            request(applicationServerPutURL, "PUT", "applicationServer"),
+            request(joinServerPutURL, "PUT", "joinServer"),
+            request(networkServerPutURL, "PUT", "networkServer"),
             request(getSensorsURL, "GET")
         )
         println(results)
@@ -45,7 +45,7 @@ suspend fun executeRequestsToTTN(): List<String> {
     }
 }
 
-suspend fun request(requestURL: String, requestType: String): String {
+suspend fun request(requestURL: String, requestType: String, server: String? = null): String {
     var response: HttpResponse? = null
 
     return try {
@@ -55,6 +55,11 @@ suspend fun request(requestURL: String, requestType: String): String {
             }
             "PUT" -> response = apiClient.put(requestURL) {
                 headers.appendAll(defaultHeaders)
+                when (server) {
+                    "applicationServer" -> setBody(JsonRequestBodies.applicationServerRequestBody(deviceID, devEUI, joinEUI, applicationID))
+                    "joinServer" -> setBody(JsonRequestBodies.joinServerRequestBody(deviceID, appKey, devEUI, joinEUI, applicationID))
+                    "networkServer" -> setBody(JsonRequestBodies.networkServerRequestBody(deviceID, devEUI, joinEUI, applicationID))
+                }
             }
             "POST" -> response = apiClient.post(requestURL) {
                 headers.appendAll(defaultHeaders)
