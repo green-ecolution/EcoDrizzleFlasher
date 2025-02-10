@@ -1,13 +1,12 @@
 package org.ecodrizzle.de
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 
-val appName = "sgr-students"
+const val applicationID = "sgr-students"
 val appKey = ""
 val devEUI = ""
 val joinEUI = ""
@@ -16,10 +15,11 @@ val deviceID = "Linus-Test-Sensor"
 const val getAllSensorsApiToken = ""
 const val registerSensorInTTNApiToken = ""
 
-val getSensorsURL = "https://zde.eu1.cloud.thethings.industries/api/v3/applications/${appName}/devices"
-val applicationServerPutURL = "https://zde.eu1.cloud.thethings.industries/api/v3/as/applications/${appName}/devices/${deviceID}"
-val joinServerPutURL = "https://zde.eu1.cloud.thethings.industries/api/v3/js/applications/${appName}/devices/${deviceID}"
-val networkServerPutURL = "https://zde.eu1.cloud.thethings.industries/api/v3/ns/applications/${appName}/devices/${deviceID}"
+const val getSensorsURL = "https://zde.eu1.cloud.thethings.industries/api/v3/applications/${applicationID}/devices"
+const val createDeviceURL = "https://zde.eu1.cloud.thethings.industries/api/v3/applications/${applicationID}/devices"
+val applicationServerPutURL = "https://zde.eu1.cloud.thethings.industries/api/v3/as/applications/${applicationID}/devices/${deviceID}"
+val joinServerPutURL = "https://zde.eu1.cloud.thethings.industries/api/v3/js/applications/${applicationID}/devices/${deviceID}"
+val networkServerPutURL = "https://zde.eu1.cloud.thethings.industries/api/v3/ns/applications/${applicationID}/devices/${deviceID}"
 
 val apiClient = HttpClient(CIO)
 val defaultHeaders = headersOf(
@@ -30,6 +30,7 @@ val defaultHeaders = headersOf(
 suspend fun executeRequestsToTTN(): List<String> {
     return try {
         val results = listOf(
+            request(createDeviceURL, "POST"),
             request(applicationServerPutURL, "PUT"),
             request(joinServerPutURL, "PUT"),
             request(networkServerPutURL, "PUT"),
@@ -44,7 +45,6 @@ suspend fun executeRequestsToTTN(): List<String> {
     }
 }
 
-// Register Sensor
 suspend fun request(requestURL: String, requestType: String): String {
     var response: HttpResponse? = null
 
@@ -55,6 +55,10 @@ suspend fun request(requestURL: String, requestType: String): String {
             }
             "PUT" -> response = apiClient.put(requestURL) {
                 headers.appendAll(defaultHeaders)
+            }
+            "POST" -> response = apiClient.post(requestURL) {
+                headers.appendAll(defaultHeaders)
+                setBody(JsonRequestBodies.createDeviceRequestBody(deviceID, devEUI, joinEUI, applicationID))
             }
         }
         response?.let {
