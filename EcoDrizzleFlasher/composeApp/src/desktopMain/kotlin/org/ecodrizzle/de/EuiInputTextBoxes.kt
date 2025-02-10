@@ -50,7 +50,7 @@ class EuiInputTextBoxes {
             getSensorsButton(
                 onClick = {
                     coroutineScope.launch {
-                        responseText = getAllSensors()
+                        responseText = executeRequestsToTTN().joinToString(separator = "\n")
                     }
                 }
             )
