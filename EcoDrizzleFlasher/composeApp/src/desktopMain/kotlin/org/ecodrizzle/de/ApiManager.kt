@@ -24,7 +24,7 @@ val networkServerPutURL = "https://zde.eu1.cloud.thethings.industries/api/v3/ns/
 val apiClient = HttpClient(CIO)
 val defaultHeaders = headersOf(
     "Accept" to listOf("application/json"),
-    "Authorization" to listOf("Bearer $getAllSensorsApiToken")
+    "Authorization" to listOf("Bearer $registerSensorInTTNApiToken")
 )
 
 suspend fun executeRequestsToTTN(): List<String> {
