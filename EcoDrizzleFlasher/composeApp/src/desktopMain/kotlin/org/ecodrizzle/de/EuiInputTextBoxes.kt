@@ -60,6 +60,10 @@ class EuiInputTextBoxes {
                 Text(text = "Eingaben speichern")
             }
             Text(resultText, style = TextStyle(fontSize = 12.sp))
+            if(appKey.isNotBlank() && devEui.isNotBlank() && joinEui.isNotBlank() && endDeviceId.isNotBlank()){
+                val flashComponent = FlashComponent(joinEui, devEui, appKey, endDeviceId)
+                flashComponent.flash()
+            }
         }
     }
 
