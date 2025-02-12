@@ -6,6 +6,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 
+val sensorDescription = "sensorDescription"
+
 const val applicationID = "sgr-students"
 val appKey = ""
 val devEUI = ""
@@ -47,7 +49,6 @@ suspend fun executeRequestsToTTN(): List<String> {
 
 suspend fun request(requestURL: String, requestType: String, server: String? = null): String {
     var response: HttpResponse? = null
-    val sensorDescription = SensorDescriptionStore.sensorDescription
     return try {
         when (requestType) {
             "GET" -> response = apiClient.get(requestURL) {

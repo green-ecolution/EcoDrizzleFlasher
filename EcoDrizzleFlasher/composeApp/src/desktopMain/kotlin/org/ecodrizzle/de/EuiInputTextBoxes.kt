@@ -46,7 +46,6 @@ class EuiInputTextBoxes {
             OutlinedTextField(value = sensorDescription,
                 onValueChange = {
                     sensorDescription = it
-                    SensorDescriptionStore.sensorDescription = sensorDescription
                 },
                 label = { Text(text = "Sensor Description") },
                 modifier = Modifier.width(500.dp).height(100.dp)
