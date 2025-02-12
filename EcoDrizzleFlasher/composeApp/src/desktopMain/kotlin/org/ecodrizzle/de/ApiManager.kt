@@ -47,7 +47,7 @@ suspend fun executeRequestsToTTN(): List<String> {
 
 suspend fun request(requestURL: String, requestType: String, server: String? = null): String {
     var response: HttpResponse? = null
-
+    val sensorDescription = SensorDescriptionStore.sensorDescription
     return try {
         when (requestType) {
             "GET" -> response = apiClient.get(requestURL) {
@@ -63,7 +63,7 @@ suspend fun request(requestURL: String, requestType: String, server: String? = n
             }
             "POST" -> response = apiClient.post(requestURL) {
                 headers.appendAll(defaultHeaders)
-                setBody(JsonRequestBodies.createDeviceRequestBody(deviceID, devEUI, joinEUI, applicationID))
+                setBody(JsonRequestBodies.createDeviceRequestBody(deviceID, devEUI, joinEUI, applicationID, sensorDescription))
             }
         }
         response?.let {

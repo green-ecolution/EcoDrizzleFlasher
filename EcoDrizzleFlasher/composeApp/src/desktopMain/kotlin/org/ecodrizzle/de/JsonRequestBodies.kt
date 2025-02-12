@@ -1,12 +1,12 @@
 package org.ecodrizzle.de
 
 object JsonRequestBodies {
-    fun createDeviceRequestBody(deviceID: String, devEUI: String, joinEUI: String, applicationID: String): String {
+    fun createDeviceRequestBody(deviceID: String, devEUI: String, joinEUI: String, applicationID: String, description: String): String {
         return """
             {
                 "end_device": {
                     "name": "$deviceID",
-                    "description": "Mein neuer Testsensor",
+                    "description": "$description",
                     "ids": {
                         "device_id": "$deviceID",
                         "dev_eui": "$devEUI",

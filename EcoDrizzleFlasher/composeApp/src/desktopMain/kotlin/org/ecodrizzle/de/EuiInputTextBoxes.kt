@@ -24,24 +24,33 @@ class EuiInputTextBoxes {
         var joinEui by remember { mutableStateOf("") }
         var devEui by remember { mutableStateOf("") }
         var appKey by remember { mutableStateOf("") }
+        var sensorDescription by remember { mutableStateOf("") }
 
         Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.Start) {
             endDeviceIdField.inputField("DeviceID",16, add0x = false,
                 onlyDigits = false, toUpperCase = false, randomGeneration = false) { newValue ->
-                endDeviceId = newValue // Aktualisiert den Wert in der übergeordneten Composable
+                endDeviceId = newValue
             }
             joinEuiField.inputField("JoinEUI",16, add0x = true,
                 onlyDigits = true, toUpperCase = false, randomGeneration = false) { newValue ->
-                joinEui = newValue // Aktualisiert den Wert in der übergeordneten Composable
+                joinEui = newValue
             }
             devEuiField.inputField("DevEUI",16, add0x = true,
                 onlyDigits = false, toUpperCase = true, randomGeneration = true) { newValue ->
-                devEui = newValue // Aktualisiert den Wert in der übergeordneten Composable
+                devEui = newValue
             }
             appKeyField.inputField("AppKey",32, add0x = true,
                 onlyDigits = false, toUpperCase = true, randomGeneration = true) { newValue ->
-                appKey = newValue // Aktualisiert den Wert in der übergeordneten Composable
+                appKey = newValue
             }
+            OutlinedTextField(value = sensorDescription,
+                onValueChange = {
+                    sensorDescription = it
+                    SensorDescriptionStore.sensorDescription = sensorDescription
+                },
+                label = { Text(text = "Sensor Description") },
+                modifier = Modifier.width(500.dp).height(100.dp)
+            )
 
             var responseText by remember { mutableStateOf("Noch keine Daten geladen...") }
             Text(responseText, modifier = Modifier.padding(10.dp), style = TextStyle(fontSize = 12.sp))
