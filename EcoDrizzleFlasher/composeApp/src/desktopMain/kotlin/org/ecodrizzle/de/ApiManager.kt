@@ -6,7 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 
-val sensorDescription = "sensorDescription"
+val sensorDescription = "Test Test Test"
 
 const val applicationID = "sgr-students"
 val appKey = ""
