@@ -41,7 +41,6 @@ class EuiInputField {
                             userInput = it.replace(" ", "-")
                     }
                     if (add0x) onValueChange(formatInputToMSB(userInput)) else onValueChange(userInput)
-
                 },
                 label = {Text(inputFieldName)})
             Spacer(Modifier.width(12.dp))
