@@ -14,7 +14,6 @@ val devEUI = ""
 val joinEUI = ""
 val deviceID = "api-test-sensor"
 
-const val getAllSensorsApiToken = ""
 const val registerSensorInTTNApiToken = ""
 
 const val getSensorsURL = "https://zde.eu1.cloud.thethings.industries/api/v3/applications/${applicationID}/devices"
