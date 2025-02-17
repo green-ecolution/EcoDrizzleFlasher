@@ -9,6 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class EuiInputTextBoxes {
@@ -17,6 +19,7 @@ class EuiInputTextBoxes {
     private val devEuiField = EuiInputField()
     private val appKeyField = EuiInputField()
 
+
     @Preview
     @Composable
     fun EuiFields() {
@@ -24,6 +27,8 @@ class EuiInputTextBoxes {
         var joinEui by remember { mutableStateOf("") }
         var devEui by remember { mutableStateOf("") }
         var appKey by remember { mutableStateOf("") }
+        var isFlashing by remember { mutableStateOf(false) }
+
 
         Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.Start) {
             endDeviceIdField.inputField("DeviceID",16, add0x = false,
@@ -60,10 +65,7 @@ class EuiInputTextBoxes {
                 Text(text = "Eingaben speichern")
             }
             Text(resultText, style = TextStyle(fontSize = 12.sp))
-            if(appKey.isNotBlank() && devEui.isNotBlank() && joinEui.isNotBlank() && endDeviceId.isNotBlank()){
-                val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
-                flashComponent.flash()
-            }
+            flashComponents(isFlashing, {flashBool -> isFlashing = flashBool}, appKey, endDeviceId, joinEui, devEui, coroutineScope)
         }
     }
 
@@ -71,6 +73,36 @@ class EuiInputTextBoxes {
     fun getSensorsButton(onClick: () -> Unit){
         Button(onClick = onClick) {
             Text("Sensoren abfragen")
+        }
+    }
+
+    @Composable
+    fun flashComponents(isFlashing: Boolean, isFlashingFunc: (Boolean) -> Unit, appKey: String, endDeviceId: String, joinEui: String, devEui: String, coroutineScope: CoroutineScope) {
+        var flashMessage by remember { mutableStateOf("") }
+        if (isFlashing) {
+            CircularProgressIndicator()  // Show loading spinner
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(flashMessage)
+        } else {
+            if(appKey.isNotBlank() && devEui.isNotBlank() && joinEui.isNotBlank() && endDeviceId.isNotBlank()) {
+                Button(onClick = {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        isFlashingFunc(true)
+                        flashMessage = "Flashing EcoDrizzler..."
+                        try {
+                            val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
+                            flashComponent.flashEcoDrizzler()
+                            flashMessage = "✅ Flashing complete!"
+                        } catch (e: Exception) {
+                            flashMessage = "❌ Error: ${e.localizedMessage}"
+                        } finally {
+                            isFlashingFunc(false)
+                        }
+                    }
+                }) {
+                    Text("Flash EcoDrizzler")
+                }
+            }
         }
     }
 }

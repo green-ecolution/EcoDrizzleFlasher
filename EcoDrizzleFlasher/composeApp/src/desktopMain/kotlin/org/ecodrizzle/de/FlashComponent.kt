@@ -3,35 +3,31 @@ package org.ecodrizzle.de
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.*
 import java.io.File
 
 class FlashComponent (val credentials: Credentials) {
     val pathToCli = "arduino-cli.exe"
     val pathToSketch = "LoRaWan/LoRaWan.ino"
 
-    @Composable
-    fun flash(){
-        Button(
-            onClick = {
-                try {
-                    flashEcoDrizzler()
-                }catch (e: Exception){
-                    println(e.localizedMessage)
-                }
-
-            }
-        ){
-            Text("List")
-        }
-    }
-
-    private fun flashEcoDrizzler() {
+    fun flashEcoDrizzler() {
         val comPort = getComPort()
-        println(comPort)
+
         if (comPort != null) {
-            writeIds()
-            runCommand(listOf("cmd","/c", pathToCli, "compile", "-p", comPort, "--fqbn", "esp32:esp32:heltec_wifi_lora_32_V3", "--upload", pathToSketch))
-            println("Arduino successfully flashed")
+            try {
+                writeIds()
+                val loadingJob = startSpinner("Flashing EcoDrizzler...")
+                runCommand(listOf("cmd", "/c", pathToCli, "config", "set", "library.enable_unsafe_install", "true"))
+                runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/HelTecAutomation/Heltec_ESP32.git"))
+                runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/mikalhart/TinyGPSPlus.git"))
+                runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "Adafruit GFX Library"))
+                runCommand(listOf("cmd","/c", pathToCli, "compile", "-p", comPort, "--fqbn", "esp32:esp32:heltec_wifi_lora_32_V3", "--upload", pathToSketch))
+                loadingJob.cancel()
+                println("Arduino successfully flashed")
+            }catch (e: Exception){
+                println(e.localizedMessage)
+            }
+
         }
     }
 
@@ -45,25 +41,31 @@ class FlashComponent (val credentials: Credentials) {
         val joinComma = addCommasToHexString(credentials.joinEui)
         val devComma = addCommasToHexString(credentials.devEui)
         val appKeyComma = addCommasToHexString(credentials.appKey)
-        println(joinComma)
-        println(devComma)
-        println(appKeyComma)
 
+        try{
+            val updatedSketch = sketchFile.readText()
+                .replace(Regex("""uint8_t devEui\[\] = \{[^}]*\};"""), """uint8_t devEui[] = { $devComma };""")
+                .replace(Regex("""uint8_t appEui\[\] = \{[^}]*\};"""), """uint8_t appEui[] = { $joinComma };""")
+                .replace(Regex("""uint8_t appKey\[\] = \{[^}]*\};"""), """uint8_t appKey[] = { $appKeyComma };""")
 
-        val updatedSketch = sketchFile.readText()
-            .replace(Regex("""uint8_t devEui\[\] = \{[^}]*\};"""), """uint8_t devEui[] = { $devComma };""")
-            .replace(Regex("""uint8_t appEui\[\] = \{[^}]*\};"""), """uint8_t appEui[] = { $joinComma };""")
-            .replace(Regex("""uint8_t appKey\[\] = \{[^}]*\};"""), """uint8_t appKey[] = { $appKeyComma };""")
+            sketchFile.writeText(updatedSketch)
 
-        sketchFile.writeText(updatedSketch)
+            println("Arduino sketch updated successfully!")
+        }catch (e:Exception){
+            println("Error: ${e.localizedMessage}")
+        }
 
-        println("Arduino sketch updated successfully!")
     }
 
     private fun getComPort():String?{
-        val comOutput = runCommand(listOf("cmd","/c", pathToCli, "board", "list"))
-        val comPort = extractComPort(comOutput)
-        return  comPort
+        try {
+            val comOutput = runCommand(listOf("cmd","/c", pathToCli, "board", "list"))
+            val comPort = extractComPort(comOutput)
+            return comPort
+        }catch (e:Exception){
+            println("Error: ${e.localizedMessage}")
+            return null
+        }
     }
 
     private fun runCommand(command: List<String>): String {
@@ -87,5 +89,17 @@ class FlashComponent (val credentials: Credentials) {
     private fun extractComPort(output: String): String? {
         val regex = Regex("^(COM\\d+)", RegexOption.MULTILINE) // Match "COM" followed by a number
         return regex.find(output)?.value // Return the first match or null if not found
+    }
+
+    private fun startSpinner(message: String): Job {
+        return CoroutineScope(Dispatchers.Default).launch {
+            val spinnerChars = listOf("|", "/", "-", "\\")
+            var index = 0
+            while (isActive) {
+                print("\r$message ${spinnerChars[index]}") // Carriage return keeps it on one line
+                index = (index + 1) % spinnerChars.size
+                delay(100) // Controls spinner speed
+            }
+        }
     }
 }
