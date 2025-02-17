@@ -12,7 +12,7 @@ const val applicationID = "sgr-students"
 val appKey = ""
 val devEUI = ""
 val joinEUI = ""
-val deviceID = "Linus-Test-Sensor"
+val deviceID = "api-test-sensor"
 
 const val getAllSensorsApiToken = ""
 const val registerSensorInTTNApiToken = ""
