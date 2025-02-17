@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    kotlin("plugin.serialization") version "2.1.10"
 }
 
 kotlin {
@@ -26,6 +27,7 @@ kotlin {
             implementation("io.ktor:ktor-client-core:$ktorVersion")
             implementation("io.ktor:ktor-client-cio:$ktorVersion")
             implementation("ch.qos.logback:logback-classic:$logbackVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

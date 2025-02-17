@@ -5,9 +5,9 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import java.io.File
 
-class FlashComponent (private val joinEUI: String, private val devEUI:String, private val appKey:String, private val endDeviceId:String) {
+class FlashComponent (val credentials: Credentials) {
     val pathToCli = "arduino-cli.exe"
-    val pathToSketch = "test.ino"
+    val pathToSketch = "LoRaWan/LoRaWan.ino"
 
     @Composable
     fun flash(){
@@ -27,6 +27,7 @@ class FlashComponent (private val joinEUI: String, private val devEUI:String, pr
 
     private fun flashEcoDrizzler() {
         val comPort = getComPort()
+        println(comPort)
         if (comPort != null) {
             writeIds()
             runCommand(listOf("cmd","/c", pathToCli, "compile", "-p", comPort, "--fqbn", "esp32:esp32:heltec_wifi_lora_32_V3", "--upload", pathToSketch))
@@ -40,13 +41,22 @@ class FlashComponent (private val joinEUI: String, private val devEUI:String, pr
             println("Error: File not found!")
             return
         }
+
+        val joinComma = addCommasToHexString(credentials.joinEui)
+        val devComma = addCommasToHexString(credentials.devEui)
+        val appKeyComma = addCommasToHexString(credentials.appKey)
+        println(joinComma)
+        println(devComma)
+        println(appKeyComma)
+
+
         val updatedSketch = sketchFile.readText()
-            .replace(Regex("""const String JOINEUI = ".*";"""), """const String JOINEUI = "$joinEUI";""")
-            .replace(Regex("""const String DEVEUI = ".*";"""), """const String DEVEUI = "$devEUI";""")
-            .replace(Regex("""const String ENDDEVICEID = ".*";"""), """const String ENDDEVICEID = "$endDeviceId";""")
-            .replace(Regex("""const String APPKEY = ".*";"""), """const String APPKEY = "$appKey";""")
+            .replace(Regex("""uint8_t devEui\[\] = \{[^}]*\};"""), """uint8_t devEui[] = { $devComma };""")
+            .replace(Regex("""uint8_t appEui\[\] = \{[^}]*\};"""), """uint8_t appEui[] = { $joinComma };""")
+            .replace(Regex("""uint8_t appKey\[\] = \{[^}]*\};"""), """uint8_t appKey[] = { $appKeyComma };""")
 
         sketchFile.writeText(updatedSketch)
+
         println("Arduino sketch updated successfully!")
     }
 
@@ -68,6 +78,10 @@ class FlashComponent (private val joinEUI: String, private val devEUI:String, pr
         } catch (e: Exception) {
             "Error: ${e.message}"
         }
+    }
+
+    private fun addCommasToHexString(input: String): String {
+        return input.split(" ").joinToString(", ")
     }
 
     private fun extractComPort(output: String): String? {

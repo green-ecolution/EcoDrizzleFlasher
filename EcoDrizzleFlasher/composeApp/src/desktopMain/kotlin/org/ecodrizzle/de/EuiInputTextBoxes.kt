@@ -61,7 +61,7 @@ class EuiInputTextBoxes {
             }
             Text(resultText, style = TextStyle(fontSize = 12.sp))
             if(appKey.isNotBlank() && devEui.isNotBlank() && joinEui.isNotBlank() && endDeviceId.isNotBlank()){
-                val flashComponent = FlashComponent(joinEui, devEui, appKey, endDeviceId)
+                val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
                 flashComponent.flash()
             }
         }
