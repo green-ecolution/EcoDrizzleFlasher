@@ -27,7 +27,6 @@ class ApiManager(val credentials: Credentials, var deviceDescription: String) {
     )
 
     suspend fun executeRequestsToTTN(): List<String> {
-
         return try {
             val results = listOf(
                 request(createDeviceURL, "POST", credentials = credentials),
@@ -43,6 +42,10 @@ class ApiManager(val credentials: Credentials, var deviceDescription: String) {
         } finally {
             apiClient.close()
         }
+    }
+
+    private fun formatCredentialForTtn(input: String): String {
+        return input.replace("0x", "").replace(" ", "").trim()
     }
 
     suspend fun request(
@@ -66,8 +69,8 @@ class ApiManager(val credentials: Credentials, var deviceDescription: String) {
                             "applicationServer" -> setBody(
                                 JsonRequestBodies.applicationServerRequestBody(
                                     credentials.deviceId,
-                                    credentials.devEui.replace("0x", "").replace(" ", "").trim(),
-                                    credentials.joinEui.replace("0x", "").replace(" ", "").trim(),
+                                    formatCredentialForTtn(credentials.devEui),
+                                    formatCredentialForTtn(credentials.joinEui),
                                     applicationID
                                 )
                             )
@@ -75,9 +78,9 @@ class ApiManager(val credentials: Credentials, var deviceDescription: String) {
                             "joinServer" -> setBody(
                                 JsonRequestBodies.joinServerRequestBody(
                                     credentials.deviceId,
-                                    credentials.appKey.replace("0x", "").replace(" ", "").trim(),
-                                    credentials.devEui.replace("0x", "").replace(" ", "").trim(),
-                                    credentials.joinEui.replace("0x", "").replace(" ", "").trim(),
+                                    formatCredentialForTtn(credentials.appKey),
+                                    formatCredentialForTtn(credentials.devEui),
+                                    formatCredentialForTtn(credentials.joinEui),
                                     applicationID
                                 )
                             )
@@ -85,8 +88,8 @@ class ApiManager(val credentials: Credentials, var deviceDescription: String) {
                             "networkServer" -> setBody(
                                 JsonRequestBodies.networkServerRequestBody(
                                     credentials.deviceId,
-                                    credentials.devEui.replace("0x", "").replace(" ", "").trim(),
-                                    credentials.joinEui.replace("0x", "").replace(" ", "").trim(),
+                                    formatCredentialForTtn(credentials.devEui),
+                                    formatCredentialForTtn(credentials.joinEui),
                                     applicationID
                                 )
                             )
@@ -100,8 +103,8 @@ class ApiManager(val credentials: Credentials, var deviceDescription: String) {
                         setBody(
                             JsonRequestBodies.createDeviceRequestBody(
                                 credentials.deviceId,
-                                credentials.devEui.replace("0x", "").replace(" ", "").trim(),
-                                credentials.joinEui.replace("0x", "").replace(" ", "").trim(),
+                                formatCredentialForTtn(credentials.devEui),
+                                formatCredentialForTtn(credentials.joinEui),
                                 applicationID,
                                 deviceDescription.ifBlank { "Keine spezielle Beschreibung verfasst" }
                             )
