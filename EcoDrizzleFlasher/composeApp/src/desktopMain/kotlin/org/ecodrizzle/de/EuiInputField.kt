@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,7 +21,8 @@ class EuiInputField {
                    inputLength : Int,
                    add0x : Boolean,
                    onlyDigits : Boolean,
-                   toUpperCase : Boolean,
+                   toLowerCase: Boolean = false,
+                   toUpperCase : Boolean = false,
                    randomGeneration : Boolean,
                    onValueChange: (String) -> Unit
     ){
@@ -33,6 +35,8 @@ class EuiInputField {
                 onValueChange = { it ->
                     val onlyDigitsFilter = it.filter { it.isDigit() }
                     when {
+                        toLowerCase && it.length <= inputLength ->
+                            userInput = it.toLowerCase(Locale.current).replace(" ", "-")
                         toUpperCase && it.length <= inputLength->
                             userInput = it.toUpperCase(Locale.current)
                         onlyDigits && it.length <= inputLength ->

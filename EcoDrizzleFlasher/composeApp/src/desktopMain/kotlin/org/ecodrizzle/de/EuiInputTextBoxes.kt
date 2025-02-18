@@ -19,7 +19,6 @@ class EuiInputTextBoxes {
     private val devEuiField = EuiInputField()
     private val appKeyField = EuiInputField()
 
-
     @Preview
     @Composable
     fun EuiFields() {
@@ -33,11 +32,11 @@ class EuiInputTextBoxes {
 
         Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.Start) {
             endDeviceIdField.inputField("DeviceID",16, add0x = false,
-                onlyDigits = false, toUpperCase = false, randomGeneration = false) { newValue ->
+                onlyDigits = false, toLowerCase = true, randomGeneration = false) { newValue ->
                 endDeviceId = newValue
             }
             joinEuiField.inputField("JoinEUI",16, add0x = true,
-                onlyDigits = true, toUpperCase = false, randomGeneration = false) { newValue ->
+                onlyDigits = true, randomGeneration = false) { newValue ->
                 joinEui = newValue
             }
             devEuiField.inputField("DevEUI",16, add0x = true,
@@ -60,10 +59,11 @@ class EuiInputTextBoxes {
             Text(responseText, modifier = Modifier.padding(10.dp), style = TextStyle(fontSize = 12.sp))
 
             val coroutineScope = rememberCoroutineScope()
+            val apiManager = ApiManager(Credentials(endDeviceId, devEui, joinEui, appKey), sensorDescription)
             getSensorsButton(
                 onClick = {
                     coroutineScope.launch {
-                        responseText = executeRequestsToTTN().joinToString(separator = "\n")
+                        responseText = apiManager.executeRequestsToTTN().joinToString(separator = "\n")
                     }
                 }
             )
