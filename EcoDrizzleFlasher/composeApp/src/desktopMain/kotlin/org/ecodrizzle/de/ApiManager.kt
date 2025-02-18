@@ -6,7 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 
-class ApiManager(val credentials: Credentials, val deviceDescription: String) {
+class ApiManager(val credentials: Credentials, var deviceDescription: String) {
     private val applicationID = "sgr-students"
     val getSensorsURL = "https://zde.eu1.cloud.thethings.industries/api/v3/applications/${applicationID}/devices"
     val createDeviceURL = "https://zde.eu1.cloud.thethings.industries/api/v3/applications/${applicationID}/devices"
@@ -104,7 +104,7 @@ class ApiManager(val credentials: Credentials, val deviceDescription: String) {
                                 credentials.devEui.replace("0x", "").replace(" ", "").trim(),
                                 credentials.joinEui.replace("0x", "").replace(" ", "").trim(),
                                 applicationID,
-                                deviceDescription
+                                deviceDescription.ifBlank { "Keine spezielle Beschreibung verfasst" }
                             )
                         )
                     }
