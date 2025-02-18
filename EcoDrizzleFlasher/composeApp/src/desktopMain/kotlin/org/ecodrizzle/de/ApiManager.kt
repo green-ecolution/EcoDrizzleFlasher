@@ -29,7 +29,6 @@ class ApiManager(val credentials: Credentials, var deviceDescription: String) {
     suspend fun executeRequestsToTTN(): List<String> {
 
         return try {
-            println("DevEUI: ${credentials.devEui} (Länge: ${credentials.devEui.length})")
             val results = listOf(
                 request(createDeviceURL, "POST", credentials = credentials),
                 request(applicationServerPutURL, "PUT", credentials = credentials, "applicationServer"),
