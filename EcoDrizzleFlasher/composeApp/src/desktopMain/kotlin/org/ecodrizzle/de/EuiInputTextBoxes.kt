@@ -56,7 +56,7 @@ class EuiInputTextBoxes {
             )
 
             var responseText by remember { mutableStateOf("Noch keine Daten geladen...") }
-            Text(responseText, modifier = Modifier.padding(10.dp), style = TextStyle(fontSize = 12.sp))
+            //Text(responseText, modifier = Modifier.padding(10.dp), style = TextStyle(fontSize = 12.sp))
 
             val coroutineScope = rememberCoroutineScope()
             val apiManager = ApiManager(Credentials(endDeviceId, devEui, joinEui, appKey), sensorDescription)

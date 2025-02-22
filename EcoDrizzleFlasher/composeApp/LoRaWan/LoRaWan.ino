@@ -18,9 +18,9 @@
 
 // add your TTN-Credentials here
 /* OTAA para */
-uint8_t devEui[] = { 0xDD, 0x2D, 0x9D, 0xF6, 0xC2, 0xE2, 0x98, 0x06 };
+uint8_t devEui[] = { 0x2C, 0xD1, 0x8B, 0xFA, 0x9D, 0x7D, 0x24, 0xE1 };
 uint8_t appEui[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-uint8_t appKey[] = { 0xEC, 0x21, 0x0D, 0x2F, 0x27, 0x77, 0xE8, 0xFA, 0x89, 0xEF, 0xB6, 0x8D, 0x5F, 0x55, 0x66, 0xFD };
+uint8_t appKey[] = { 0xC9, 0x3C, 0x79, 0x0E, 0x47, 0xF7, 0x88, 0x04, 0x9F, 0xA2, 0x2C, 0xD7, 0x2D, 0x0F, 0x69, 0x39 };
 
 /* ABP para */
 uint8_t nwkSKey[] = { };
@@ -84,19 +84,47 @@ static const uint32_t GPSBaud = 9600;
 
 // The TinyGPSPlus object
 TinyGPSPlus gps;
-unsigned long lat = 0;
-unsigned long lng = 0;
+float latitude = 0.0;
+float longitude = 0.0;
+unsigned long timeTaken = 0;
 
-void getGpsSignal(unsigned long ms) {
-  unsigned long start = millis();
-  do {
-  while(Serial2.available() > 0) 
-    gps.encode(Serial2.read());
-    //char gpsData = Serial2.read();
-    //gpsDataComplete += gpsData;
-    lat = gps.location.lat() * 1000000;
-    lng = gps.location.lng() * 1000000;
-  } while (millis() - start < ms); 
+// Method to get GPS signal and track time taken
+bool getGPSSignal() {
+  unsigned long startTime = millis();  // Record the start time
+
+  while (true) {
+    // Check if there is data available from the GPS module
+    while (Serial2.available() > 0) {
+      // Read a single character
+      char data = Serial2.read();
+
+      // Print the raw NMEA data to the Serial Monitor
+      Serial.write(data);
+
+      // Feed the data to TinyGPS++
+      gps.encode(data);
+    }
+
+    // Check if a valid fix has been acquired
+    if (gps.location.isValid()) {
+      // Set latitude and longitude
+      latitude = gps.location.lat();
+      longitude = gps.location.lng();
+
+      // Calculate the time taken
+      timeTaken = millis() - startTime;
+      return true;  // Valid GPS signal found
+    }
+
+    // Timeout after 5 minutes (adjust as needed)
+    if (millis() - startTime > 300000) {  // 300,000 ms = 5 minutes
+      timeTaken = millis() - startTime;  // Record the time taken even if no signal is found
+      return false;  // Timeout, no valid signal found
+    }
+
+    // Add a small delay to reduce the frequency of checks
+    delay(200);  // Check every 200 milliseconds (5 times per second)
+  }
 }
 
 void getWatermarkValues() {
@@ -233,12 +261,24 @@ static void prepareTxFrame(uint8_t port) {
   // reading Sensorvalues of Watermarksensors
   getWatermarkValues();
 
-  // reading GPS
-  getGpsSignal(1000);
-  Serial.println(lat);
-  Serial.println(lng);
+ // Call the method to get GPS signal
+   if (getGPSSignal()) {
+     Serial.println("Valid GPS signal found!");
+     Serial.print("Latitude: ");
+     Serial.println(latitude, 6);
+     Serial.print("Longitude: ");
+     Serial.println(longitude, 6);
+     Serial.print("Time taken: ");
+     Serial.print(timeTaken / 1000);  // Convert milliseconds to seconds
+     Serial.println(" seconds");
+
+   } else {
+     Serial.println("Failed to get valid GPS signal.");
+   }
+   long lat = latitude * 1000000;  // 37.7749 → 37774900
+   long lng = longitude * 1000000;
   
-  appDataSize = 26;
+  appDataSize = 28;
 
   appData[0] = (int)WM1_Resistance >> 8;
   appData[1] = (int)WM1_Resistance;
@@ -273,6 +313,8 @@ static void prepareTxFrame(uint8_t port) {
 
   appData[24] = (int) castedSMT100MoistData >> 8;
   appData[25] = (int) castedSMT100MoistData;
+
+  // Assuming timeTaken is an unsigned long (4 bytes)
 }
 
 /* Read ADC and get resistance of sensor */
