@@ -18,7 +18,7 @@ class ApiManager(val credentials: Credentials, var deviceDescription: String) {
         "https://zde.eu1.cloud.thethings.industries/api/v3/ns/applications/${applicationID}/devices/${credentials.deviceId}"
 
     private val registerSensorInTTNApiToken =
-        "NNSXS.TVCYWBSUNM54NWBOWXK3YPTFAHJ3EQG6VOQNJGA.HTBPDAE44EMTCVR6QCRAPAUJ66GZBLDGF4ZXVJJMXZWV4ASQDLLQ"
+        ""
 
     private val apiClient = HttpClient(CIO)
     private val defaultHeaders = headersOf(

@@ -13,21 +13,23 @@
 #define num_of_read 1 // number of iterations, each is actually two reads of the sensor (both directions)
 #define RXD2 48       // rx-pin for SMT-100 Sensor (needs to be changed if other board is used)
 #define TXD2 47       // tx-pin for SMT-100 Sensor (needs to be changed if other board is used)
-#define GPSTXD 33     // rx-pin for GPS
-#define GPSRXD 34     // tx-pin for GPS
+#define GPSTXD 33     // connected to rx-pin of GPS module
+#define GPSRXD 34     // connected to tx-pin of GPS module
 
 // add your TTN-Credentials here
 /* OTAA para */
-uint8_t devEui[] = { 0x2C, 0xD1, 0x8B, 0xFA, 0x9D, 0x7D, 0x24, 0xE1 };
+uint8_t devEui[] = { 0xEF, 0x7F, 0xCC, 0x33, 0xCA, 0xC3, 0x97, 0x4E };
 uint8_t appEui[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-uint8_t appKey[] = { 0xC9, 0x3C, 0x79, 0x0E, 0x47, 0xF7, 0x88, 0x04, 0x9F, 0xA2, 0x2C, 0xD7, 0x2D, 0x0F, 0x69, 0x39 };
+uint8_t appKey[] = { 0xCE, 0x5C, 0x60, 0x3C, 0x11, 0x24, 0xA8, 0x41, 0x51, 0x64, 0x20, 0x22, 0x63, 0x61, 0x67, 0x87 };
+
+const char* deviceName = "placeholder";
 
 /* ABP para */
 uint8_t nwkSKey[] = { };
 uint8_t appSKey[] = { };
 uint32_t devAddr = (uint32_t)0x00000000;
 
-/* LoraWan channelsmask, default channels 0-7 */ 
+/* LoraWan channelsmask, default channels 0-7 */
 uint16_t userChannelsMask[6] = { 0x00FF, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 };
 
 /* LoraWan region, select in Arduino IDE tools */
@@ -37,7 +39,7 @@ LoRaMacRegion_t loraWanRegion = ACTIVE_REGION;
 DeviceClass_t loraWanClass = CLASS_A;
 
 /* the application data transmission duty cycle.  value in [ms]. */
-uint32_t appTxDutyCycle = 3600000; //3600000
+uint32_t appTxDutyCycle = 60*1000; //3600000
 
 /* OTAA or ABP */
 bool overTheAirActivation = true;
@@ -60,7 +62,7 @@ uint8_t confirmedNbTrials = 4;
 const float BATTERY_THRESHOLD = 3.0;
 
 const int Rx = 10000;  // fixed resistor attached in series to the sensor and ground...the same value repeated for all WM and Temp Sensor.
-const long default_TempC = 10; // right now fixed, but can be changed, if temperaturesensor is connected 
+const long default_TempC = 10; // right now fixed, but can be changed, if temperaturesensor is connected
 const long default_Mositure = 50;
 const long open_resistance = 35000; // check the open resistance value by replacing sensor with an open and replace the value here...this value might vary slightly with circuit components
 const long short_resistance = 200; // similarly check short resistance by shorting the sensor terminals and replace the value here.
@@ -80,51 +82,61 @@ const int Sensor2 = 2;
 const int Mux = 7;
 const int Sense = 3;
 
+
+// GPS
+// Constants
+const unsigned long GPS_DATA_TIMEOUT = 10 * 1000;  // 10 seconds
+const unsigned long GPS_FIX_TIMEOUT = 1 * 60 * 1000;  // 5 minutes
+const unsigned long GPS_CHECK_INTERVAL = 200;  // 200 ms
 static const uint32_t GPSBaud = 9600;
 
-// The TinyGPSPlus object
 TinyGPSPlus gps;
 float latitude = 0.0;
 float longitude = 0.0;
 unsigned long timeTaken = 0;
 
-// Method to get GPS signal and track time taken
 bool getGPSSignal() {
   unsigned long startTime = millis();  // Record the start time
+  bool validDataReceived = false;
+  unsigned long lastCheckTime = 0;     // Flag to check if valid NMEA data is received
 
-  while (true) {
-    // Check if there is data available from the GPS module
-    while (Serial2.available() > 0) {
-      // Read a single character
-      char data = Serial2.read();
+  while (millis() - startTime <= GPS_FIX_TIMEOUT) {
+    // Non-blocking delay for periodic checks
+    unsigned long currentTime = millis();
+    if (currentTime - lastCheckTime >= GPS_CHECK_INTERVAL) {
+      lastCheckTime = currentTime;  // Update the last check time
 
-      // Print the raw NMEA data to the Serial Monitor
-      Serial.write(data);
-
-      // Feed the data to TinyGPS++
-      gps.encode(data);
+      // Check if there is data available from the GPS module
+      while (Serial2.available() > 0) {
+        char data = Serial2.read();
+        // Print the raw NMEA data to the Serial Monitor
+        Serial.write(data);
+        // Feed the data to TinyGPS++
+        if (gps.encode(data)) {
+          validDataReceived = true;  // Set the flag to true if valid NMEA data is received
+        }
+      }
     }
 
     // Check if a valid fix has been acquired
     if (gps.location.isValid()) {
-      // Set latitude and longitude
       latitude = gps.location.lat();
       longitude = gps.location.lng();
-
-      // Calculate the time taken
       timeTaken = millis() - startTime;
       return true;  // Valid GPS signal found
     }
 
-    // Timeout after 5 minutes (adjust as needed)
-    if (millis() - startTime > 300000) {  // 300,000 ms = 5 minutes
-      timeTaken = millis() - startTime;  // Record the time taken even if no signal is found
-      return false;  // Timeout, no valid signal found
+    // Check if no valid data has been received within the data timeout period
+    if (!validDataReceived && millis() - startTime > GPS_DATA_TIMEOUT) {
+      Serial.println("No valid data from GPS-module received. Check GPS-module connection. Not signal, the actual module!");
+      return false;  // No valid GPS data received
     }
-
-    // Add a small delay to reduce the frequency of checks
-    delay(200);  // Check every 200 milliseconds (5 times per second)
   }
+
+  // Timeout, no valid signal found
+  timeTaken = millis() - startTime;
+  Serial.println("GPS fix timeout. No valid signal found.");
+  return false;
 }
 
 void getWatermarkValues() {
@@ -144,7 +156,7 @@ void getWatermarkValues() {
 
     // read the second Watermark sensor
     delay(100); // 0.1 second wait before moving to next channel or switching MUX
-    // address the MUX 
+    // address the MUX
     digitalWrite(S0, HIGH);
     digitalWrite(S1, LOW);
 
@@ -205,7 +217,7 @@ String removeNonNumericCharacters(String str) {
 void getSMT100Temperature() {
   // send "GetTemperature!" command to the RS485 device via UART1
   Serial1.print("GetTemperature!000000\r\n");  // send ASCII command to the RS485 device (UART1)
-  
+
   // wait for a response from the RS485 device
   delay(100);  // adjust delay based on your RS485 device's response time
   // check if the RS485 device has sent back a response
@@ -253,7 +265,7 @@ static void prepareTxFrame(uint8_t port) {
     esp_deep_sleep_start();
   }
 
-  
+
   // reading Temperature of SMT100
   getSMT100Temperature();
   getSMT100Moisture();
@@ -261,24 +273,23 @@ static void prepareTxFrame(uint8_t port) {
   // reading Sensorvalues of Watermarksensors
   getWatermarkValues();
 
- // Call the method to get GPS signal
-   if (getGPSSignal()) {
-     Serial.println("Valid GPS signal found!");
-     Serial.print("Latitude: ");
-     Serial.println(latitude, 6);
-     Serial.print("Longitude: ");
-     Serial.println(longitude, 6);
-     Serial.print("Time taken: ");
-     Serial.print(timeTaken / 1000);  // Convert milliseconds to seconds
-     Serial.println(" seconds");
+  // Call the method to get GPS signal
+  if (getGPSSignal()) {
+    Serial.println("Valid GPS signal found!");
+    Serial.print("Latitude: ");
+    Serial.println(latitude, 6);
+    Serial.print("Longitude: ");
+    Serial.println(longitude, 6);
+    Serial.print("Time taken: ");
+    Serial.print(timeTaken / 1000);  // Convert milliseconds to seconds
+    Serial.println(" seconds");
+  } else {
+    Serial.println("Failed to get valid GPS signal.");
+  }
+  long lat = latitude * 1000000;  // 37.7749 → 37774900
+  long lng = longitude * 1000000;
 
-   } else {
-     Serial.println("Failed to get valid GPS signal.");
-   }
-   long lat = latitude * 1000000;  // 37.7749 → 37774900
-   long lng = longitude * 1000000;
-  
-  appDataSize = 28;
+  appDataSize = 30;
 
   appData[0] = (int)WM1_Resistance >> 8;
   appData[1] = (int)WM1_Resistance;
@@ -295,30 +306,33 @@ static void prepareTxFrame(uint8_t port) {
   appData[10] = abs(WM3_CB) >> 8;
   appData[11] = abs(WM3_CB);
 
-  appData[12] = (int)castedSMT100TempData >> 8; 
+  appData[12] = (int)castedSMT100TempData >> 8;
   appData[13] = (int)castedSMT100TempData;
 
   appData[14] = int_battery >> 8;
   appData[15] = int_battery;
 
-  appData[16] = (lat >> 24); 
-  appData[17] = (lat >> 16); 
-  appData[18] = (lat >> 8);  
-  appData[19] = lat;         
+  appData[16] = (lat >> 24);
+  appData[17] = (lat >> 16);
+  appData[18] = (lat >> 8);
+  appData[19] = lat;
 
-  appData[20] = (lng >> 24); 
-  appData[21] = (lng >> 16); 
-  appData[22] = (lng >> 8);  
-  appData[23] = lng;     
+  appData[20] = (lng >> 24);
+  appData[21] = (lng >> 16);
+  appData[22] = (lng >> 8);
+  appData[23] = lng;
 
   appData[24] = (int) castedSMT100MoistData >> 8;
   appData[25] = (int) castedSMT100MoistData;
 
-  // Assuming timeTaken is an unsigned long (4 bytes)
+  appData[26] = (timeTaken >> 24) & 0xFF;  // Most significant byte
+  appData[27] = (timeTaken >> 16) & 0xFF;
+  appData[28] = (timeTaken >> 8) & 0xFF;
+  appData[29] = timeTaken & 0xFF;
 }
 
 /* Read ADC and get resistance of sensor */
-float readWMsensor() {  
+float readWMsensor() {
   ARead_A1 = 0;
   ARead_A2 = 0;
 
@@ -393,7 +407,7 @@ uint16_t readBatteryVoltage() {
   const float measuredVoltage = 4.2;
   const float reportedVoltage = 4.095;
   // calibration factor
-  const float factor = (adcMaxVoltage / adcMax) * ((R1 + R2)/(float)R2) * (measuredVoltage / reportedVoltage); 
+  const float factor = (adcMaxVoltage / adcMax) * ((R1 + R2)/(float)R2) * (measuredVoltage / reportedVoltage);
   digitalWrite(ADC_Ctrl,LOW);
   delay(100);
   int analogValue = analogRead(VBAT_Read);

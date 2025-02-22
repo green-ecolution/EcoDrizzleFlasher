@@ -51,7 +51,11 @@ class EuiInputField {
             if(randomGeneration) {
                 Button(
                     onClick = {
-                        userInput = generateRandomCredentials(inputLength)
+                        if(inputFieldName == "JoinEUI"){
+                            userInput = "0".repeat(inputLength)
+                        }else{
+                            userInput = generateRandomCredentials(inputLength)
+                        }
                         onValueChange(formatInputToMSB(userInput))
                     },
                     contentPadding = PaddingValues(10.dp)
