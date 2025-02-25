@@ -27,6 +27,10 @@ kotlin {
             implementation("io.ktor:ktor-client-core:$ktorVersion")
             implementation("io.ktor:ktor-client-cio:$ktorVersion")
             implementation("ch.qos.logback:logback-classic:$logbackVersion")
+            implementation("io.ktor:ktor-client-content-negotiation:2.3.4")
+            implementation("io.ktor:ktor-client-json:2.3.4")
+            implementation("io.ktor:ktor-client-serialization:2.3.4")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
         }
         desktopMain.dependencies {
