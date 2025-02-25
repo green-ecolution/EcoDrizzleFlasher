@@ -61,9 +61,8 @@ object JsonRequestBodies {
                         "firmware_version": "1.0",
                         "band_id": "EU_863_870"
                     },
-                    "formatters": {
-                        "up_formatter": "FORMATTER_REPOSITORY",
-                        "down_formatter": "FORMATTER_REPOSITORY"
+                    "formatter": {
+                        "up_formatter": "FORMATTER_APPLICATION"
                     }
                 },
                 "field_mask": {

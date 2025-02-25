@@ -32,7 +32,7 @@ class EuiInputTextBoxes {
         var isFlashing by remember { mutableStateOf(false) }
 
         Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.Start) {
-            endDeviceIdField.inputField("DeviceID",16, add0x = false,
+            endDeviceIdField.inputField("DeviceID",14, add0x = false,
                 onlyDigits = false, toLowerCase = true, randomGeneration = false) { newValue ->
                 endDeviceId = newValue
             }
