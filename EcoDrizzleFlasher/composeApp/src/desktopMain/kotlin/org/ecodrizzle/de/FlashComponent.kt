@@ -101,7 +101,7 @@ class FlashComponent (val credentials: Credentials) {
                 runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/HelTecAutomation/Heltec_ESP32.git"))
                 runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/mikalhart/TinyGPSPlus.git"))
                 runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "Adafruit GFX Library"))
-                runCommand(listOf("cmd","/c", pathToCli, "compile", "-p", comPort, "--fqbn", "cd ", "--upload", pathToSketch))
+                runCommand(listOf("cmd","/c", pathToCli, "compile", "-p", comPort, "--fqbn", "esp32:esp32:heltec_wifi_lora_32_V3", "--upload", pathToSketch))
                 loadingJob.cancel()
                 println("Arduino successfully flashed")
             }catch (e: Exception){
