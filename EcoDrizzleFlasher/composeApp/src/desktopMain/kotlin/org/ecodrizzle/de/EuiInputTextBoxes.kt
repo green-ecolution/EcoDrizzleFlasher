@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class EuiInputTextBoxes {
@@ -31,12 +32,12 @@ class EuiInputTextBoxes {
         var isFlashing by remember { mutableStateOf(false) }
 
         Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.Start) {
-            endDeviceIdField.inputField("DeviceID",16, add0x = false,
+            endDeviceIdField.inputField("DeviceID",14, add0x = false,
                 onlyDigits = false, toLowerCase = true, randomGeneration = false) { newValue ->
                 endDeviceId = newValue
             }
             joinEuiField.inputField("JoinEUI",16, add0x = true,
-                onlyDigits = true, randomGeneration = false) { newValue ->
+                onlyDigits = true, randomGeneration = true) { newValue ->
                 joinEui = newValue
             }
             devEuiField.inputField("DevEUI",16, add0x = true,
@@ -54,38 +55,13 @@ class EuiInputTextBoxes {
                 label = { Text(text = "Sensor Description") },
                 modifier = Modifier.width(500.dp).height(100.dp)
             )
-
-            var responseText by remember { mutableStateOf("Noch keine Daten geladen...") }
-            //Text(responseText, modifier = Modifier.padding(10.dp), style = TextStyle(fontSize = 12.sp))
-
             val coroutineScope = rememberCoroutineScope()
-            val apiManager = ApiManager(Credentials(endDeviceId, devEui, joinEui, appKey), sensorDescription)
-            getSensorsButton(
-                onClick = {
-                    coroutineScope.launch {
-                        responseText = apiManager.executeRequestsToTTN().joinToString(separator = "\n")
-                    }
-                }
-            )
-
-            var resultText by remember { mutableStateOf("Hier sollten die formatierten Inputs auftauchen!") }
-            Button(onClick = {resultText = "EndDeviceID : $endDeviceId \nJoinEUI: $joinEui \nDevEUI: $devEui \nAppKEY: $appKey" }) {
-                Text(text = "Eingaben speichern")
-            }
-            Text(resultText, style = TextStyle(fontSize = 12.sp))
-            flashComponents(isFlashing, {flashBool -> isFlashing = flashBool}, appKey, endDeviceId, joinEui, devEui, coroutineScope)
+            flashComponents(isFlashing, {flashBool -> isFlashing = flashBool}, appKey, endDeviceId, joinEui, devEui, sensorDescription, coroutineScope)
         }
     }
 
     @Composable
-    fun getSensorsButton(onClick: () -> Unit){
-        Button(onClick = onClick) {
-            Text("Sensoren abfragen")
-        }
-    }
-
-    @Composable
-    fun flashComponents(isFlashing: Boolean, isFlashingFunc: (Boolean) -> Unit, appKey: String, endDeviceId: String, joinEui: String, devEui: String, coroutineScope: CoroutineScope) {
+    fun flashComponents(isFlashing: Boolean, isFlashingFunc: (Boolean) -> Unit, appKey: String, endDeviceId: String, joinEui: String, devEui: String, sensorDescription:String, coroutineScope: CoroutineScope) {
         var flashMessage by remember { mutableStateOf("") }
         if (isFlashing) {
             CircularProgressIndicator()  // Show loading spinner
@@ -93,23 +69,33 @@ class EuiInputTextBoxes {
             Text(flashMessage)
         } else {
             if(appKey.isNotBlank() && devEui.isNotBlank() && joinEui.isNotBlank() && endDeviceId.isNotBlank()) {
+                var responseText by remember { mutableStateOf("Noch keine Daten geladen...") }
                 Button(onClick = {
                     coroutineScope.launch(Dispatchers.IO) {
                         isFlashingFunc(true)
-                        flashMessage = "Flashing EcoDrizzler..."
+                        flashMessage = "Sensor wird im TTN angelegt"
+                        val apiManager = ApiManager(Credentials(endDeviceId, devEui, joinEui, appKey), sensorDescription)
+                        responseText = apiManager.executeRequestsToTTN().joinToString(separator = "\n")
+                        flashMessage = "Sensor erfolgreich angelegt"
+                        delay(2000)
+                        flashMessage = "Sensor wird geflasht"
                         try {
                             val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
                             flashComponent.flashEcoDrizzler()
                             flashMessage = "✅ Flashing complete!"
+                            delay(2000)
                         } catch (e: Exception) {
                             flashMessage = "❌ Error: ${e.localizedMessage}"
+                            delay(2000)
                         } finally {
                             isFlashingFunc(false)
                         }
                     }
                 }) {
-                    Text("Flash EcoDrizzler")
+                    Text("Sensor Flashen")
                 }
+            }else{
+                Text("Bitte Alle Felder Ausfüllen")
             }
         }
     }
