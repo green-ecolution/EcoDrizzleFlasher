@@ -87,28 +87,26 @@ class FlashComponent (val credentials: Credentials) {
         println("files should be written")
     }
 
-    fun flashEcoDrizzler() {
+    fun flashEcoDrizzler(): Boolean {
         runBlocking {
             downloadSketch()
         }
         println("weiter")
-        val comPort = getComPort()
-        if (comPort != null) {
-            try {
-                writeIds()
-                val loadingJob = startSpinner("Flashing EcoDrizzler...")
-                runCommand(listOf("cmd", "/c", pathToCli, "config", "set", "library.enable_unsafe_install", "true"))
-                runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/HelTecAutomation/Heltec_ESP32.git"))
-                runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/mikalhart/TinyGPSPlus.git"))
-                runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "Adafruit GFX Library"))
-                runCommand(listOf("cmd","/c", pathToCli, "compile", "-p", comPort, "--fqbn", "esp32:esp32:heltec_wifi_lora_32_V3", "--upload", pathToSketch))
-                loadingJob.cancel()
-                println("Arduino successfully flashed")
-            }catch (e: Exception){
-                println(e.localizedMessage)
-            }
-
+        val comPort = getComPort() ?: return false
+        try {
+            writeIds()
+            val loadingJob = startSpinner("Flashing EcoDrizzler...")
+            runCommand(listOf("cmd", "/c", pathToCli, "config", "set", "library.enable_unsafe_install", "true"))
+            runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/HelTecAutomation/Heltec_ESP32.git"))
+            runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/mikalhart/TinyGPSPlus.git"))
+            runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "Adafruit GFX Library"))
+            runCommand(listOf("cmd","/c", pathToCli, "compile", "-p", comPort, "--fqbn", "esp32:esp32:heltec_wifi_lora_32_V3", "--upload", pathToSketch))
+            loadingJob.cancel()
+            println("Arduino successfully flashed")
+        } catch (e: Exception) {
+            println(e.localizedMessage)
         }
+        return true
     }
 
     private fun writeIds(){
