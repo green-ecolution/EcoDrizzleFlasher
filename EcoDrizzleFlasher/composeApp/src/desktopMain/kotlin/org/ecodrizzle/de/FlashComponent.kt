@@ -1,17 +1,12 @@
 package org.ecodrizzle.de
 
-import androidx.compose.material.Button
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import kotlinx.coroutines.*
 import java.io.File
-import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.*
