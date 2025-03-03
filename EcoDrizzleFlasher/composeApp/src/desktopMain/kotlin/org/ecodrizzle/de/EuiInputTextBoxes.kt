@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -61,41 +62,57 @@ class EuiInputTextBoxes {
     }
 
     @Composable
-    fun flashComponents(isFlashing: Boolean, isFlashingFunc: (Boolean) -> Unit, appKey: String, endDeviceId: String, joinEui: String, devEui: String, sensorDescription:String, coroutineScope: CoroutineScope) {
-        var flashMessage by remember { mutableStateOf("") }
+    fun flashComponents(isFlashing: Boolean,
+                        isFlashingFunc: (Boolean) -> Unit,
+                        appKey: String,
+                        endDeviceId: String,
+                        joinEui: String,
+                        devEui: String,
+                        sensorDescription:String,
+                        coroutineScope: CoroutineScope) {
+        var flashMessage by remember { mutableStateOf("Bitte Alle Felder Ausfüllen") }
         if (isFlashing) {
             CircularProgressIndicator()  // Show loading spinner
             Spacer(modifier = Modifier.height(16.dp))
             Text(flashMessage)
         } else {
             if(appKey.isNotBlank() && devEui.isNotBlank() && joinEui.isNotBlank() && endDeviceId.isNotBlank()) {
-                var responseText by remember { mutableStateOf("Noch keine Daten geladen...") }
                 Button(onClick = {
                     coroutineScope.launch(Dispatchers.IO) {
                         isFlashingFunc(true)
                         flashMessage = "Sensor wird im TTN angelegt"
                         val apiManager = ApiManager(Credentials(endDeviceId, devEui, joinEui, appKey), sensorDescription)
-                        responseText = apiManager.executeRequestsToTTN().joinToString(separator = "\n")
-                        flashMessage = "Sensor erfolgreich angelegt"
-                        delay(2000)
-                        flashMessage = "Sensor wird geflasht"
-                        try {
-                            val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
-                            flashComponent.flashEcoDrizzler()
-                            flashMessage = "✅ Flashing complete!"
-                            delay(2000)
-                        } catch (e: Exception) {
-                            flashMessage = "❌ Error: ${e.localizedMessage}"
-                            delay(2000)
-                        } finally {
-                            isFlashingFunc(false)
+
+                        val statusCode = apiManager.executeRequestsToTTN()
+                        when (statusCode) {
+                            HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden, HttpStatusCode.InternalServerError -> {
+                                flashMessage = "Anlegen des Sensors im TTN fehlgeschlagen"
+                                isFlashingFunc(false)
+                            }
+                            HttpStatusCode.OK -> {
+                                flashMessage = "Sensor wurde im TTN angelegt"
+                                delay(2000)
+                                flashMessage = "Sensor wird geflasht"
+                                try {
+                                    val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
+                                    flashComponent.flashEcoDrizzler()
+                                    flashMessage = "✅ Flashing complete!"
+                                    delay(2000)
+                                } catch (e: Exception) {
+                                    flashMessage = "❌ Error: ${e.localizedMessage}"
+                                    delay(2000)
+                                } finally {
+                                    isFlashingFunc(false)
+                                }
+                            }
+                            else -> flashMessage = "Unknown error"
                         }
                     }
                 }) {
                     Text("Sensor Flashen")
                 }
-            }else{
-                Text("Bitte Alle Felder Ausfüllen")
+            } else {
+                Text(flashMessage)
             }
         }
     }
