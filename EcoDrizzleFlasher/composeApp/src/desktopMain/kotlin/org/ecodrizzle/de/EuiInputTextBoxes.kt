@@ -79,46 +79,34 @@ class EuiInputTextBoxes {
             buttonState = true
         }
 
-        Row(modifier = Modifier.padding(top = 10.dp) ,horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.padding(top = 10.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically) {
             Button(
                 modifier = Modifier.width(150.dp).height(40.dp),
                 enabled = buttonState,
                 onClick = {
                     coroutineScope.launch(Dispatchers.IO) {
                         isFlashingFunc(true)
-
-                        val flashComponent =
-                            FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
-                        flashStatus = flashComponent.flashEcoDrizzler()
-
-                        when (flashStatus) {
-                            false -> {
-                                flashMessage = "❌ Microcontroller konnte nicht geflasht werden"
-                                isFlashingFunc(false)
-                            }
-                            true -> {
-                                val apiManager = ApiManager(Credentials(endDeviceId, devEui, joinEui, appKey), sensorDescription)
-                                val statusCode = apiManager.executeRequestsToTTN()
-
-                                flashMessage = "✅ Flashing complete!"
+                        flashMessage = "📡 Sensor wird im TTN angelegt..."
+                        val apiManager = ApiManager(Credentials(endDeviceId, devEui, joinEui, appKey), sensorDescription)
+                        val statusCode = apiManager.executeRequestsToTTN()
+                        when (statusCode) {
+                            HttpStatusCode.OK -> {
+                                flashMessage = "✅ Sensor wurde im TTN angelegt"
                                 delay(2000)
+                                flashMessage = "\uD83D\uDCE5 Flashing beginnt..."
+                                val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
+                                flashStatus = flashComponent.flashEcoDrizzler()
 
-                                when (statusCode) {
-                                    HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden, HttpStatusCode.InternalServerError, HttpStatusCode.BadRequest -> {
-                                        flashMessage = "❌ Anlegen des Sensors im TTN fehlgeschlagen"
-                                        ttnStatus = false
-                                        isFlashingFunc(false)
-                                    }
-
-                                    HttpStatusCode.OK -> {
-                                        flashMessage = "✅ Sensor wurde im TTN angelegt"
-                                        ttnStatus = true
-                                        isFlashingFunc(false)
-                                    }
-                                    else -> flashMessage = "Unknown error"
-                                }
+                                flashMessage = if (flashStatus) "✅ Flashing abgeschlossen!" else "❌ Flashing fehlgeschlagen."
+                            }
+                            else -> {
+                                flashMessage = "❌ Anlegen des Sensors im TTN fehlgeschlagen."
+                                ttnStatus = false
                             }
                         }
+                        isFlashingFunc(false)
                     }
                 }) {
 
