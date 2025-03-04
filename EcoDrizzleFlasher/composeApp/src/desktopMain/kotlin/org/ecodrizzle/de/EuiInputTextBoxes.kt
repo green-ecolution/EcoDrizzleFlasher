@@ -6,9 +6,10 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -61,41 +62,66 @@ class EuiInputTextBoxes {
     }
 
     @Composable
-    fun flashComponents(isFlashing: Boolean, isFlashingFunc: (Boolean) -> Unit, appKey: String, endDeviceId: String, joinEui: String, devEui: String, sensorDescription:String, coroutineScope: CoroutineScope) {
+    fun flashComponents(isFlashing: Boolean,
+                        isFlashingFunc: (Boolean) -> Unit,
+                        appKey: String,
+                        endDeviceId: String,
+                        joinEui: String,
+                        devEui: String,
+                        sensorDescription:String,
+                        coroutineScope: CoroutineScope) {
         var flashMessage by remember { mutableStateOf("") }
-        if (isFlashing) {
-            CircularProgressIndicator()  // Show loading spinner
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(flashMessage)
-        } else {
-            if(appKey.isNotBlank() && devEui.isNotBlank() && joinEui.isNotBlank() && endDeviceId.isNotBlank()) {
-                var responseText by remember { mutableStateOf("Noch keine Daten geladen...") }
-                Button(onClick = {
+        var flashStatus by remember { mutableStateOf(false) }
+        var ttnStatus by remember { mutableStateOf(false) }
+
+        var buttonState by remember { mutableStateOf(false) }
+        if(appKey.isNotBlank() && devEui.isNotBlank() && joinEui.isNotBlank() && endDeviceId.isNotBlank()) {
+            buttonState = true
+        }
+
+        Row(modifier = Modifier.padding(top = 10.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically) {
+            Button(
+                modifier = Modifier.width(150.dp).height(40.dp),
+                enabled = buttonState,
+                onClick = {
                     coroutineScope.launch(Dispatchers.IO) {
                         isFlashingFunc(true)
-                        flashMessage = "Sensor wird im TTN angelegt"
+                        flashMessage = "📡 Sensor wird im TTN angelegt..."
                         val apiManager = ApiManager(Credentials(endDeviceId, devEui, joinEui, appKey), sensorDescription)
-                        responseText = apiManager.executeRequestsToTTN().joinToString(separator = "\n")
-                        flashMessage = "Sensor erfolgreich angelegt"
-                        delay(2000)
-                        flashMessage = "Sensor wird geflasht"
-                        try {
-                            val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
-                            flashComponent.flashEcoDrizzler()
-                            flashMessage = "✅ Flashing complete!"
-                            delay(2000)
-                        } catch (e: Exception) {
-                            flashMessage = "❌ Error: ${e.localizedMessage}"
-                            delay(2000)
-                        } finally {
-                            isFlashingFunc(false)
+                        val statusCode = apiManager.executeRequestsToTTN()
+                        when (statusCode) {
+                            HttpStatusCode.OK -> {
+                                flashMessage = "✅ Sensor wurde im TTN angelegt"
+                                delay(2000)
+                                flashMessage = "\uD83D\uDCE5 Flashing beginnt..."
+                                val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
+                                flashStatus = flashComponent.flashEcoDrizzler()
+
+                                flashMessage = if (flashStatus) "✅ Flashing abgeschlossen!" else "❌ Flashing fehlgeschlagen."
+                            }
+                            else -> {
+                                flashMessage = "❌ Anlegen des Sensors im TTN fehlgeschlagen."
+                                ttnStatus = false
+                            }
                         }
+                        isFlashingFunc(false)
                     }
                 }) {
+
+                if(isFlashing) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 3.dp)
+                } else {
                     Text("Sensor Flashen")
                 }
-            }else{
-                Text("Bitte Alle Felder Ausfüllen")
+            }
+            Spacer(Modifier.width(20.dp))
+            when (ttnStatus && flashStatus) {
+                true -> Text(flashMessage)
+                false -> Text(flashMessage, fontWeight = FontWeight.Bold)
             }
         }
     }

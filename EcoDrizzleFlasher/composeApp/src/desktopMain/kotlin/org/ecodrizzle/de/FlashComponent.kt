@@ -1,17 +1,12 @@
 package org.ecodrizzle.de
 
-import androidx.compose.material.Button
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import kotlinx.coroutines.*
 import java.io.File
-import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.*
@@ -87,28 +82,26 @@ class FlashComponent (val credentials: Credentials) {
         println("files should be written")
     }
 
-    fun flashEcoDrizzler() {
+    fun flashEcoDrizzler(): Boolean {
         runBlocking {
             downloadSketch()
         }
         println("weiter")
-        val comPort = getComPort()
-        if (comPort != null) {
-            try {
-                writeIds()
-                val loadingJob = startSpinner("Flashing EcoDrizzler...")
-                runCommand(listOf("cmd", "/c", pathToCli, "config", "set", "library.enable_unsafe_install", "true"))
-                runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/HelTecAutomation/Heltec_ESP32.git"))
-                runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/mikalhart/TinyGPSPlus.git"))
-                runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "Adafruit GFX Library"))
-                runCommand(listOf("cmd","/c", pathToCli, "compile", "-p", comPort, "--fqbn", "esp32:esp32:heltec_wifi_lora_32_V3", "--upload", pathToSketch))
-                loadingJob.cancel()
-                println("Arduino successfully flashed")
-            }catch (e: Exception){
-                println(e.localizedMessage)
-            }
-
+        val comPort = getComPort() ?: return false
+        try {
+            writeIds()
+            val loadingJob = startSpinner("Flashing EcoDrizzler...")
+            runCommand(listOf("cmd", "/c", pathToCli, "config", "set", "library.enable_unsafe_install", "true"))
+            runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/HelTecAutomation/Heltec_ESP32.git"))
+            runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "--git-url", "https://github.com/mikalhart/TinyGPSPlus.git"))
+            runCommand(listOf("cmd", "/c", pathToCli, "lib", "install", "Adafruit GFX Library"))
+            runCommand(listOf("cmd","/c", pathToCli, "compile", "-p", comPort, "--fqbn", "esp32:esp32:heltec_wifi_lora_32_V3", "--upload", pathToSketch))
+            loadingJob.cancel()
+            println("Arduino successfully flashed")
+        } catch (e: Exception) {
+            println(e.localizedMessage)
         }
+        return true
     }
 
     private fun writeIds(){
