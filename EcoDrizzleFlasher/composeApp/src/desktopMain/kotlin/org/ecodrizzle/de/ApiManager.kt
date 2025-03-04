@@ -6,7 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 
-class ApiManager(private val credentials: Credentials, private var deviceDescription: String) {
+class ApiManager(private val credentials: Credentials, private var deviceDescription: String, apiKey: String) {
     private val applicationID = "sgr-students"
     private val getSensorsURL = "https://zde.eu1.cloud.thethings.industries/api/v3/applications/${applicationID}/devices"
     private val createDeviceURL = "https://zde.eu1.cloud.thethings.industries/api/v3/applications/${applicationID}/devices"
@@ -32,9 +32,7 @@ class ApiManager(private val credentials: Credentials, private var deviceDescrip
         Endpoint(joinServerPutURL, requestType = "PUT", credentials, server = "joinServer", additionalInfo = "Create Device on Application-Server"),
         Endpoint(networkServerPutURL, requestType = "PUT", credentials, server = "networkServer",additionalInfo = "Create Device on Application-Server")
     )
-
-    private val registerSensorInTTNApiToken =
-        ""
+    private val registerSensorInTTNApiToken = apiKey
 
     private val apiClient = HttpClient(CIO)
     private val defaultHeaders = headersOf(

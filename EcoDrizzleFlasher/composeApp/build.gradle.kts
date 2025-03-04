@@ -7,6 +7,13 @@ plugins {
     kotlin("plugin.serialization") version "2.1.10"
 }
 
+repositories {
+    mavenCentral()
+    google()
+    // Desktop target has to add this repo
+    maven("https://jogamp.org/deployment/maven")
+}
+
 kotlin {
     jvm("desktop")
     
@@ -24,6 +31,8 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation("io.ktor:ktor-server-core:3.1.0")
+            implementation("io.ktor:ktor-server-netty:3.1.0")
             implementation("io.ktor:ktor-client-core:$ktorVersion")
             implementation("io.ktor:ktor-client-cio:$ktorVersion")
             implementation("ch.qos.logback:logback-classic:$logbackVersion")
@@ -32,10 +41,12 @@ kotlin {
             implementation("io.ktor:ktor-client-serialization:2.3.4")
             implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+            implementation("io.ktor:ktor-client-auth:$ktorVersion")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+
         }
     }
 }
