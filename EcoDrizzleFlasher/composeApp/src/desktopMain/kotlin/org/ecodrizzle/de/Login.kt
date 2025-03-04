@@ -51,10 +51,10 @@ fun startLocalServer(onCodeReceived: (String) -> Unit) {
     }.start(wait = false)
 }
 
-suspend fun getUser(accessToken: Tokens):String? {
+suspend fun getUser(keyCloakUrl: String, accessToken:Tokens):String? {
     return accessToken.let { token ->
-        //println(token)
-        val userInfoUrl = "https://auth.green-ecolution.de/realms/Flasher-Software/protocol/openid-connect/userinfo"
+        println(token)
+        val userInfoUrl = "$keyCloakUrl/userinfo"
         val response: HttpResponse = HttpClient().get(userInfoUrl) {
             headers {
                 append("Authorization", "Bearer ${token.access_token}")
@@ -64,7 +64,6 @@ suspend fun getUser(accessToken: Tokens):String? {
         val userInfo = Json.decodeFromString<UserInfo>(response.bodyAsText())
         //println(userInfo)
         userInfo.ttn // Replace "apiKey" with the actual field name
-
     }
 }
 
@@ -73,8 +72,7 @@ fun login(){
     val scope = rememberCoroutineScope()
     var loginSuccess by remember { mutableStateOf(false) }
     var apiKey by remember { mutableStateOf<String?>(null) }
-    var message by remember { mutableStateOf("") }
-    val keycloakAuthUrl = "https://auth.green-ecolution.de/realms/Flasher-Software/protocol/openid-connect/auth"
+    val keycloakUrl = "https://auth.green-ecolution.de/realms/green-ecolution-dev/protocol/openid-connect"
     val clientId = "flasher-client"
     val redirectUri = "http://localhost:8080/callback" // Or a custom protocol like myapp://callback
 
@@ -82,10 +80,10 @@ fun login(){
     LaunchedEffect(Unit) {
         startLocalServer { code ->
             scope.launch {
-                val tokens = exchangeCodeForTokens(code, clientId, redirectUri)
+                val tokens = exchangeCodeForTokens(code, clientId, redirectUri, keycloakUrl)
                 //println(tokens)
                 if(tokens != null) {
-                    apiKey = getUser(tokens)
+                    apiKey = getUser(keycloakUrl, tokens)
                     //println(apiKey)
                     if(apiKey != null) {
                         loginSuccess = true
@@ -102,7 +100,7 @@ fun login(){
             ) {
                 Button(onClick = {
                     val loginUrl =
-                        "$keycloakAuthUrl?response_type=code&client_id=$clientId&redirect_uri=$redirectUri&scope=openid"
+                        "$keycloakUrl/auth?response_type=code&client_id=$clientId&redirect_uri=$redirectUri&scope=openid"
                     //println(loginUrl)
                     openBrowser(loginUrl)
                 }) {
@@ -111,14 +109,15 @@ fun login(){
             }
         }else{
             val euiInputTextBoxes = EuiInputTextBoxes()
+            println(apiKey)
             euiInputTextBoxes.EuiFields(apiKey!!)
         }
 
 }
 
 @OptIn(InternalAPI::class)
-private suspend fun exchangeCodeForTokens(code: String, clientId: String, redirectUri: String): Tokens? {
-    val tokenUrl = "https://auth.green-ecolution.de/realms/Flasher-Software/protocol/openid-connect/token"
+private suspend fun exchangeCodeForTokens(code: String, clientId: String, redirectUri: String, keyCloakUrl:String): Tokens? {
+    val tokenUrl = "$keyCloakUrl/token"
     val clientSecret = "<your-client-secret>" // Only for confidential clients
 
     return try {

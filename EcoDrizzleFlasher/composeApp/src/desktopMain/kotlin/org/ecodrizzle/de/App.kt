@@ -10,14 +10,7 @@ import login
 @Preview
 fun App() {
     MaterialTheme {
-        val euiInputTextBoxes = EuiInputTextBoxes()
         login()
-        //euiInputTextBoxes.EuiFields()
     }
 }
 
-@Composable
-@Preview
-fun AppPreview() {
-    Text("hello Compose")
-}
