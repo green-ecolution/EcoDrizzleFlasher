@@ -4,18 +4,13 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import login
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        val euiInputTextBoxes = EuiInputTextBoxes()
-        euiInputTextBoxes.EuiFields()
+        login()
     }
 }
 
-@Composable
-@Preview
-fun AppPreview() {
-    Text("hello Compose")
-}

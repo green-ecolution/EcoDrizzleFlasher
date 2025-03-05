@@ -23,7 +23,7 @@ class EuiInputTextBoxes {
 
     @Preview
     @Composable
-    fun EuiFields() {
+    fun EuiFields(apiKey: String) {
         var endDeviceId by remember { mutableStateOf("") }
         var joinEui by remember { mutableStateOf("") }
         var devEui by remember { mutableStateOf("") }
@@ -57,7 +57,7 @@ class EuiInputTextBoxes {
                 modifier = Modifier.width(500.dp).height(100.dp)
             )
             val coroutineScope = rememberCoroutineScope()
-            flashComponents(isFlashing, {flashBool -> isFlashing = flashBool}, appKey, endDeviceId, joinEui, devEui, sensorDescription, coroutineScope)
+            flashComponents(isFlashing, {flashBool -> isFlashing = flashBool}, appKey, endDeviceId, joinEui, devEui, sensorDescription, coroutineScope, apiKey)
         }
     }
 
@@ -69,7 +69,9 @@ class EuiInputTextBoxes {
                         joinEui: String,
                         devEui: String,
                         sensorDescription:String,
-                        coroutineScope: CoroutineScope) {
+                        coroutineScope: CoroutineScope,
+                        apiKey: String
+    ) {
         var flashMessage by remember { mutableStateOf("") }
         var flashStatus by remember { mutableStateOf(false) }
         var ttnStatus by remember { mutableStateOf(false) }
@@ -89,7 +91,8 @@ class EuiInputTextBoxes {
                     coroutineScope.launch(Dispatchers.IO) {
                         isFlashingFunc(true)
                         flashMessage = "📡 Sensor wird im TTN angelegt..."
-                        val apiManager = ApiManager(Credentials(endDeviceId, devEui, joinEui, appKey), sensorDescription)
+                        println(apiKey)
+                        val apiManager = ApiManager(Credentials(endDeviceId, devEui, joinEui, appKey), sensorDescription, apiKey)
                         val statusCode = apiManager.executeRequestsToTTN()
                         when (statusCode) {
                             HttpStatusCode.OK -> {
