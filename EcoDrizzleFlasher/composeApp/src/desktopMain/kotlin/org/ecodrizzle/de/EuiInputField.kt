@@ -22,11 +22,14 @@ class EuiInputField {
                    add0x : Boolean,
                    onlyDigits : Boolean,
                    toLowerCase: Boolean = false,
+                   excluteSpecialChar : Boolean = false,
                    toUpperCase : Boolean = false,
                    randomGeneration : Boolean,
                    onValueChange: (String) -> Unit
     ){
         var userInput by remember { mutableStateOf("") }
+        val idCharPool = (('a'..'z') + ('0' .. '9') + ('-'))
+        val euiCharPool = (('A'..'F') + ('a'..'z') + ('0' .. '9'))
 
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
@@ -35,10 +38,10 @@ class EuiInputField {
                 onValueChange = { it ->
                     val onlyDigitsFilter = it.filter { it.isDigit() }
                     when {
-                        toLowerCase && it.length <= inputLength ->
-                            userInput = it.toLowerCase(Locale.current).replace(" ", "-")
+                        excluteSpecialChar && it.length <= inputLength ->
+                            userInput = it.toLowerCase(Locale.current).replace(" ", "-").filter { it in idCharPool }
                         toUpperCase && it.length <= inputLength->
-                            userInput = it.toUpperCase(Locale.current)
+                            userInput = it.toUpperCase(Locale.current).filter { it in  euiCharPool}
                         onlyDigits && it.length <= inputLength ->
                             userInput = onlyDigitsFilter
                         it.length <= inputLength ->

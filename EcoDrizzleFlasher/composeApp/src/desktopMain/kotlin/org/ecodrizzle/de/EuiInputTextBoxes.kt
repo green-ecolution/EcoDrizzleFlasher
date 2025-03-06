@@ -34,7 +34,7 @@ class EuiInputTextBoxes {
 
         Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.Start) {
             endDeviceIdField.inputField("DeviceID",14, add0x = false,
-                onlyDigits = false, toLowerCase = true, randomGeneration = false) { newValue ->
+                onlyDigits = false, toLowerCase = true, randomGeneration = false, excluteSpecialChar = true) { newValue ->
                 endDeviceId = newValue
             }
             joinEuiField.inputField("JoinEUI",16, add0x = true,

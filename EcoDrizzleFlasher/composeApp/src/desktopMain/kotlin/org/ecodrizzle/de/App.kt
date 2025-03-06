@@ -10,7 +10,9 @@ import login
 @Preview
 fun App() {
     MaterialTheme {
-        login()
+        //login()
+        val test = EuiInputTextBoxes()
+        test.EuiFields("")
     }
 }
 
