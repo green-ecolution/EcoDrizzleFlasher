@@ -21,11 +21,12 @@ class EuiInputField {
                    inputLength : Int,
                    add0x : Boolean,
                    onlyDigits : Boolean,
-                   toLowerCase: Boolean = false,
                    excluteSpecialChar : Boolean = false,
                    toUpperCase : Boolean = false,
                    randomGeneration : Boolean,
+                   defaultCycle: Int?,
                    onValueChange: (String) -> Unit
+
     ){
         var userInput by remember { mutableStateOf("") }
         val idCharPool = (('a'..'z') + ('0' .. '9') + ('-'))
@@ -73,7 +74,13 @@ class EuiInputField {
                 }
             }
             Box(modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)) {
-                val displayedText = if (add0x) formatInputToMSB(userInput) else userInput
+                var displayedText = ""
+                if(defaultCycle != null){
+                    displayedText += "$defaultCycle Stunden"
+                }else{
+                    displayedText = if (add0x) formatInputToMSB(userInput) else userInput
+                }
+
                 Text(text = "$inputFieldName: $displayedText", style = TextStyle(fontSize = 12.sp))
             }
         }
