@@ -20,6 +20,7 @@ class EuiInputTextBoxes {
     private val joinEuiField = EuiInputField()
     private val devEuiField = EuiInputField()
     private val appKeyField = EuiInputField()
+    private val dutyCycleField = EuiInputField()
 
     @Preview
     @Composable
@@ -28,26 +29,35 @@ class EuiInputTextBoxes {
         var joinEui by remember { mutableStateOf("") }
         var devEui by remember { mutableStateOf("") }
         var appKey by remember { mutableStateOf("") }
+        var dutyCycle by remember { mutableStateOf(24) }
 
         var sensorDescription by remember { mutableStateOf("") }
         var isFlashing by remember { mutableStateOf(false) }
 
         Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.Start) {
             endDeviceIdField.inputField("DeviceID",14, add0x = false,
-                onlyDigits = false, toLowerCase = true, randomGeneration = false, excluteSpecialChar = true) { newValue ->
+                onlyDigits = false, randomGeneration = false, excluteSpecialChar = true, defaultCycle = null) { newValue ->
                 endDeviceId = newValue
             }
             joinEuiField.inputField("JoinEUI",16, add0x = true,
-                onlyDigits = true, randomGeneration = true) { newValue ->
+                onlyDigits = true, randomGeneration = true, defaultCycle = null) { newValue ->
                 joinEui = newValue
             }
             devEuiField.inputField("DevEUI",16, add0x = true,
-                onlyDigits = false, toUpperCase = true, randomGeneration = true) { newValue ->
+                onlyDigits = false, toUpperCase = true, randomGeneration = true, defaultCycle = null) { newValue ->
                 devEui = newValue
             }
             appKeyField.inputField("AppKey",32, add0x = true,
-                onlyDigits = false, toUpperCase = true, randomGeneration = true) { newValue ->
+                onlyDigits = false, toUpperCase = true, randomGeneration = true, defaultCycle = null) { newValue ->
                 appKey = newValue
+            }
+            dutyCycleField.inputField("Sende Intervall in Std",3, add0x = false,
+                onlyDigits = true, toUpperCase = false, randomGeneration = false, defaultCycle = dutyCycle) { newValue ->
+                dutyCycle = try {
+                    newValue.toInt()
+                }catch (e: Exception){
+                    0
+                }
             }
             OutlinedTextField(value = sensorDescription,
                 onValueChange = {
@@ -57,7 +67,7 @@ class EuiInputTextBoxes {
                 modifier = Modifier.width(500.dp).height(100.dp)
             )
             val coroutineScope = rememberCoroutineScope()
-            flashComponents(isFlashing, {flashBool -> isFlashing = flashBool}, appKey, endDeviceId, joinEui, devEui, sensorDescription, coroutineScope, apiKey)
+            flashComponents(isFlashing, {flashBool -> isFlashing = flashBool}, appKey, endDeviceId, joinEui, devEui, sensorDescription, coroutineScope, apiKey, dutyCycle)
         }
     }
 
@@ -70,14 +80,15 @@ class EuiInputTextBoxes {
                         devEui: String,
                         sensorDescription:String,
                         coroutineScope: CoroutineScope,
-                        apiKey: String
+                        apiKey: String,
+                        dutyCycle: Int,
     ) {
         var flashMessage by remember { mutableStateOf("") }
         var flashStatus by remember { mutableStateOf(false) }
         var ttnStatus by remember { mutableStateOf(false) }
 
         var buttonState by remember { mutableStateOf(false) }
-        if(appKey.isNotBlank() && devEui.isNotBlank() && joinEui.isNotBlank() && endDeviceId.isNotBlank()) {
+        if(appKey.isNotBlank() && devEui.isNotBlank() && joinEui.isNotBlank() && endDeviceId.isNotBlank() && dutyCycle != 0) {
             buttonState = true
         }
 
@@ -99,7 +110,7 @@ class EuiInputTextBoxes {
                                 flashMessage = "✅ Sensor wurde im TTN angelegt"
                                 delay(2000)
                                 flashMessage = "\uD83D\uDCE5 Flashing beginnt..."
-                                val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey))
+                                val flashComponent = FlashComponent(Credentials(endDeviceId, devEui, joinEui, appKey, dutyCycle = dutyCycle))
                                 flashStatus = flashComponent.flashEcoDrizzler()
 
                                 flashMessage = if (flashStatus) "✅ Flashing abgeschlossen!" else "❌ Flashing fehlgeschlagen."

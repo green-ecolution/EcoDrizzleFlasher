@@ -105,8 +105,9 @@ class FlashComponent (val credentials: Credentials) {
     }
 
     private fun writeIds(){
-        val sketchFile = File(secrets)
-        if (!sketchFile.exists()) {
+        val secretFile = File(secrets)
+        val scetchFile = File(pathToSketch)
+        if (!secretFile.exists() || !scetchFile.exists()) {
             println("Error: File not found!")
             return
         }
@@ -114,16 +115,21 @@ class FlashComponent (val credentials: Credentials) {
         val joinComma = addCommasToHexString(credentials.joinEui)
         val devComma = addCommasToHexString(credentials.devEui)
         val appKeyComma = addCommasToHexString(credentials.appKey)
+        val dutyCycle = credentials.dutyCycle * 60 * 60 * 1000
 
         try{
-            val updatedSketch = sketchFile.readText()
+            val updatedSecret = secretFile.readText()
                 .replace(Regex("""const char deviceName\[\] = "([^"]*)";"""), """const char deviceName[] = "${credentials.deviceId}";""")
                 .replace(Regex("""uint8_t devEui\[\] = \{[^}]*\};"""), """uint8_t devEui[] = { $devComma };""")
                 .replace(Regex("""uint8_t appEui\[\] = \{[^}]*\};"""), """uint8_t appEui[] = { $joinComma };""")
                 .replace(Regex("""uint8_t appKey\[\] = \{[^}]*\};"""), """uint8_t appKey[] = { $appKeyComma };""")
 
-            sketchFile.writeText(updatedSketch)
+            secretFile.writeText(updatedSecret)
             copySecretsFile()
+
+            val updatedScetch = scetchFile.readText()
+                .replace(Regex("""uint32_t\s+appTxDutyCycle\s*=\s*[^;]+;"""), """uint32_t appTxDutyCycle = $dutyCycle;""")
+            scetchFile.writeText(updatedScetch)
             println("Arduino sketch updated successfully!")
         }catch (e:Exception){
             println("Error: ${e.localizedMessage}")
