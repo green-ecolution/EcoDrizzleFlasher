@@ -1,45 +1,32 @@
-# EcoDrizzleFlasher
-A tool to flash esp32 with th option to log into ttl
+Welcome to the EcoDrizzleFlasher wiki!
 
+![image](https://github.com/user-attachments/assets/c69e28cd-44ec-44e7-8d64-447bad7f4fd9)
 
-Using arduino-cli (https://arduino.github.io/arduino-cli/1.1/installation/#download)
-command to list all boards: ./arduino-cli.exe board list
-command to upload a sketch: ./arduino-cli.exe upload -p COM3 --fqbn esp32:esp32:heltec_wifi_lora_32_V3 <path_to_sketch>
+## Introduction
 
----
+Smart irrigation is needed to save water, staff and costs. This wiki is the documentation for the user-interface for Green Ecolution. The user-interface allows users to connect to the backend and interact with it's database. Interactions are possible with:
 
-### Connecting Sensor with TTN
-#### All the information required to connect a sensor to the TTN:
-1. End-Device-Brand: HelTec AutoMation
-2. Model: Wifi Lora 32 (V2) (Class A OTAA)
-3. Hardwareversion: Unknown ver.
-4. Firmwareversion: 1.0
-5. Profile (Region): EU_863_870
-6. Frequency Plan: Europe 863-870 MHz (SF12 for RX2)
+- trees
+- tree clusters
+- sensors
+- watering plans
+- vehicles
+- users
 
----
+While the project is created in collaboration with the local green space management (TBZ Flensburg), this software aims to be applicable to other cities. It was initially developed at the University of Applied Sciences Flensburg as a research project within the Applied Computer Science masters degree program.
 
-##### TTN Credentials that need to be flashed on the Microcontroller to connect to the TTN:
-1. End-Device-ID: ***ID structure needs to be clarified!***
-2. JoinEUI (AppEUI): 00 00 00 00 00 00 00 00
-3. DevEUI: A0 B1 C2 D3 E4 F5 G6 H7
-4. AppKey: A0 B1 C2 D3 E4 F5 G6 H7 I8 J9 K0 L1 M2 N3 O4 P5
+## Content of this Repository
+This wiki documents a flasher tool that can be used, for example, to equip a Heltec ESP32 microcontroller with the necessary software to send data to the TTN. This consists of two main functions. Firstly, the sensor must be created in the TTN. Then the microcontroller can be flashed with the necessary software. After this process, the microcontroller can send sensor data directly to the TTN without any further settings, which can be viewed and used by the user.
 
-The Credentials should be formatted like the following examples for the code on the microcontroller. Normally, these 
-values are generated directly in the TTN interface by the User.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/00309ad8-30b6-431d-8dd4-2fe04b909e1c" alt="Bildbeschreibung" width="60%">
+</p>
 
-***MSB (Most Significant Byte) is used to store the credentials***
-1. JoinEUI (AppEUI): *0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00*
-2. DevEUI: *0xA0, 0xB1, 0xC2, 0xD3, 0xE4, 0xF5, 0xG6, 0xH7*
-3. AppKey: *0xA0, 0xB1, 0xC2, 0xD3, 0xE4, 0xF5, 0xG6, 0xH7, 0xI8, 0xJ9, 0xK0, 0xL1, 0xM2, 0xN3, 0xO4, 0xP5*
+To register the microcontroller in the TTN the HTTP(REST)-API is used: https://www.thethingsindustries.com/docs/api/reference/http/
 
-```
-// Example for Arduino-Code
-uint8_t appEui[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-uint8_t devEui[] = { 0xA0, 0xB1, 0xC2, 0xD3, 0xE4, 0xF5, 0xG6, 0xH7 };
-uint8_t appKey[] = { 0xA0, 0xB1, 0xC2, 0xD3, 0xE4, 0xF5, 0xG6, 0xH7, 0xI8, 0xJ9, 0xK0, 0xL1, 0xM2, 0xN3, 0xO4, 0xP5 };
-```
+The Arduino CLI is used to flash the microcontroller: https://arduino.github.io/arduino-cli/1.2/
 
-Other Parameters (Device adress, NwkSKey, AppSKey) should be generated automatically by the TTN.
-
----
+## Further information
+For more information about this project please refer to:
+- [Project website](https://green-ecolution.de/)
+- [University of Applied Sciences Flensburg](https://hs-flensburg.de/)
