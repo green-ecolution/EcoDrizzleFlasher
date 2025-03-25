@@ -1,5 +1,3 @@
-Welcome to the EcoDrizzleFlasher wiki!
-
 ![image](https://github.com/user-attachments/assets/c69e28cd-44ec-44e7-8d64-447bad7f4fd9)
 
 ## Introduction
